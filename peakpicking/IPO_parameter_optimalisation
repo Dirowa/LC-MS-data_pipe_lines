@@ -1,0 +1,129 @@
+##############################################################
+# parameter finder , peakpicking, retentiontime and grouping #
+##############################################################
+
+if (!requireNamespace("BiocManager", quietly=TRUE))
+     install.packages("BiocManager")
+#install.packages('doParallel','stats')
+#BiocManager::install(c("xcms","IPO","msdata","faahKO"))
+
+
+
+#install.packages("BiocManager")
+#install.packages("BiocManager",'doParallel','stats',"xcms","IPO","msdata","faahKO")
+#BiocManager::install(c('doParallel','stats',"xcms","IPO","msdata","faahKO"))
+
+#BiocManager::install("xcms")
+#BiocManager::install("IPO")
+#BiocManager::install("msdata")
+#BiocManager::install("faahKO")
+
+#############################################################
+#                 Variables                                 #
+#############################################################
+
+
+# path containing the data
+fold <- "/media/thor/Donny_file/test_data_sherlok/test_data"
+output <- "/media/thor/Donny_file/IPO/output/"
+
+
+### the test data from Faako package
+#datapath <- system.file("cdf", package = "faahKO")
+#datafiles <- list.files(datapath, recursive = TRUE, full.names = TRUE)
+
+
+#############################################################
+# Library's                                                 #
+#############################################################
+
+library(stats)
+library(IPO)
+library(xcms)
+library(faahKO)
+#library(pander)
+#library(RColorBrewer)
+#library(pander)
+#library(magrittr)
+#library(pheatmap)
+library(SummarizedExperiment)
+library(doParallel)
+
+###########################################################
+#  Data aquisistion                                       #
+###########################################################
+
+QC_files <- list.files(path = fold, pattern = "QC*", full.names = TRUE, recursive = TRUE)
+
+#registerDoParallel(cores = 20)
+#getDoParWorkers()
+
+###########################################################
+# peakpicking                                             #
+###########################################################
+peakpicking_params <- c('centWave','matchedFilter')
+retcorMethod <- c("obiwarp", "loess", "none")
+distfunction <- c("cor", "cov", "prd", "euc")
+
+foreach (P= 1:(length(peakpicking_params))) %dopar% {
+# testing centwave against matched filter
+    peakpickingParameters <- getDefaultXcmsSetStartingParams(peakpicking_params[P])
+
+      
+    #### For real data
+    time.xcmsSet <- system.time({ # measuring time
+      resultPeakpicking <- 
+        optimizeXcmsSet(files = QC_files, 
+                        params = peakpickingParameters, 
+                        nSlaves = 10, 
+                       subdir = NULL,
+                        plot = FALSE)
+    })
+
+    resultPeakpicking$best_settings$result
+    optimizedXcmsSetObject <- resultPeakpicking$best_settings$xset
+    
+    ############################################################
+    # Retention time correcting and grouping                  ##
+    ############################################################
+    # retcorMethod=c("obiwarp", "loess", "none""
+    #"cor", "cov", "prd", "euc"
+    
+    foreach (R= 1:(length(retcorMethod))) %do% {
+      foreach (D= 1:(length(distfunction))) %do%  {
+      
+        ## ----optimize_retcor_group, fig.height=7, fig.width=7, warning = FALSE--------
+        retcorGroupParameters <- getDefaultRetGroupStartingParams((retcorMethod= retcorMethod[R]),
+                                                                   (distfunc= distfunction[D]),
+                                                                   (high_resolution=TRUE))
+        
+        #retcorGroupParameters$profStep <- 1
+        #retcorGroupParameters$gapExtend <- 2.7
+        time.RetGroup <- system.time({ # measuring time
+          resultRetcorGroup <-
+            optimizeRetGroup(xset = optimizedXcmsSetObject, 
+                             params = retcorGroupParameters, 
+                             nSlaves = 10, 
+                             subdir = NULL,
+                             plot = FALSE)
+        })
+        ############# convertting stats to apply to rest of script#################
+        parameter_settting <- capture.output(writeRScript(resultPeakpicking$best_settings$parameters, 
+                                                     resultRetcorGroup$best_settings), type = "message")
+        parameter_settting
+        file_name <- paste0(output,peakpicking_params[P],"_",retcorMethod[R],"_",distfunction[D],"nslaveplus.txt")
+        write.csv(parameter_settting, file = file_name)
+        ########### Times ######################################################
+        time.xcmsSet # time for optimizing peak picking parameters
+        time.RetGroup # time for optimizing retention time correction and grouping parameters
+        
+        
+
+}
+}
+}
+
+
+
+stopImplicitCluster()
+
