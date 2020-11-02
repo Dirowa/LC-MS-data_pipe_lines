@@ -3,6 +3,13 @@
 # pubchem parser           #
 ############################
 
+
+############## REQUIREMENTS ################
+
+# around 350 gb of free space
+# linux based program for the Wget command
+
+
 # files retrieved on linux by wget $url
 import os
 
