@@ -208,3 +208,29 @@ c.execute("CREATE TABLE Base ("
 #data = csv.rea
 #data.to_sql('Base', conn, if_exist='append', index = True)
 
+
+
+#########################
+# database builder #
+import sqlite3
+
+#############
+# Variables #
+#############
+
+Download_location = 'F:/databases/'
+
+#######################
+# database creation   #
+#######################
+
+database_name = Download_location + 'pubchem.db'
+conn = sqlite3.connect(database_name)
+c = conn.cursor()
+c.execute('''CREATE TABLE BASE                
+            ([identifier] varchar(16) PRIMARY KEY NOT NULL, [compoundname]  varchar(30) NOT NULL, [baseformula]  varchar(20) NOT NULL, [structure] varchar(30) NOT NULL, [charge]  integer NOT NULL, [description]  Text NOT NULL)''')
+
+
+a_file = open("F:/databases/pubchem.csv")
+rows = csv.reader(a_file)
+cur.executemany("INSERT INTO data Base (?, ?)", rows)
