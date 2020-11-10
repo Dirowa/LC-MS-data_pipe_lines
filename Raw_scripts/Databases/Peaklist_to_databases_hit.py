@@ -144,12 +144,12 @@ for database in databases:
         print('wrong datbase')
     else:
         try:
-            
+
             # creates a connection with te database
             database1 = folder_to_databases + database
             extended = sqlite3.connect(database1)
             c = extended.cursor()
-            
+
             # Counter is to count where to add the result to
             counter = -1
 
@@ -159,7 +159,7 @@ for database in databases:
                 #retrieve full_structure of found MZ_value
                 item = (item.split(','))[8]
                 #print(item)
-                
+
                 #if there is a found structure
                 if item != "NA":
                     #print(item)
@@ -174,11 +174,11 @@ for database in databases:
                     # output will be separated with ---
                     TMP_hit_count = 0
                     TMP_item = ''
-                    
+
                     #for every found hit inside the query of the database
                     for row in c.execute(query):
                         TMP_hit_count += 1
-                        
+
                         # this removes the found , inside of the query. or else this will mess up the excel table
                         row0 = str(row[0]).replace(',',' ')
                         row1 = str(row[1]).replace(',', ' ')
@@ -205,7 +205,7 @@ for database in databases:
                             TMP_item = (row0) + ',' + (row1) + ',' + (row2) + ',' + (row3) + ',' + (row4) + ','
 
                     result[counter] = result[counter] + ',' + TMP_item
-                    
+
                 # if no result is found inside this database a NA will be added
                 else:
                     result[counter] = result[counter] + ',NA,NA,NA,NA,NA,'
