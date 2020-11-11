@@ -209,28 +209,24 @@ c.execute("CREATE TABLE Base ("
 #data.to_sql('Base', conn, if_exist='append', index = True)
 
 
-
-#########################
-# database builder #
-import sqlite3
-
-#############
-# Variables #
-#############
-
-Download_location = 'F:/databases/'
-
 #######################
 # database creation   #
 #######################
 
-database_name = Download_location + 'pubchem.db'
+database_name = dabatase_location + 'pubchem.db'
 conn = sqlite3.connect(database_name)
 c = conn.cursor()
-c.execute('''CREATE TABLE BASE                
-            ([identifier] varchar(16) PRIMARY KEY NOT NULL, [compoundname]  varchar(30) NOT NULL, [baseformula]  varchar(20) NOT NULL, [structure] varchar(30) NOT NULL, [charge]  integer NOT NULL, [description]  Text NOT NULL)''')
+try:
+    c.execute('''CREATE TABLE BASE                
+                ([identifier] varchar(16) PRIMARY KEY NOT NULL, [compoundname]  varchar(30) NOT NULL, [baseformula]  varchar(20) NOT NULL, [structure] varchar(30) NOT NULL, [charge]  integer NOT NULL, [description]  Text NOT NULL)''')
+except:
+    print("database already excist")
 
-
-a_file = open("F:/databases/pubchem.csv")
-rows = csv.reader(a_file)
-cur.executemany("INSERT INTO data Base (?, ?)", rows)
+with open(pubchem_tsv,'r') as file:
+        next(file)
+        for line in file:
+            to_db = line.rstrip().replace(' ','').replace(' ','').split('\t')
+            #print(to_db[0])
+            Import = ("INSERT INTO BASE (identifier,compoundname,baseformula,structure,charge,description) "
+                          "VALUES (" +"'"+ str(to_db[0]) +"'"','"'"+ str(to_db[1]) +"'"','"'"+ str(to_db[2]) +"'"','"'"+ str(to_db[3]) +"'"','"'"+ str(to_db[4]) +"'"','"'"+ str(to_db[5]) +"'"");")
+            c.execute(Import)
