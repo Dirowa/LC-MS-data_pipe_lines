@@ -15,7 +15,8 @@
 ################
 import sqlite3
 import os
-os.system('pip install XlsxWriter')
+import pip
+pip.main(['install','xlsxwriter'])
 import xlsxwriter
 
 
@@ -24,24 +25,23 @@ import xlsxwriter
 ##############################
 
 #extended_db = 'C:/Users/DVrin/OneDrive/Documenten/avans/stage_MM/databases/extended.db'
-folder_to_databases = 'C:/Users/DVrin/OneDrive/Documenten/avans/stage_MM/databases/'
+folder_to_databases = 'F:/avans/stage MM/databases/'
 
 #file containing mz values, BE SURE THE first column is feature ID and second the MZvalue! DONT REMOVE HEADER
-file_to_feature_list ='C:/Users/DVrin/OneDrive/Documenten/avans/stage_MM/XCMS/Feature_list_centwave_N5000.txt'
+file_to_feature_list ='F:/avans/stage MM/peakpicking/Feature_list_centwave_N5000.txt'
 
 #output location and file name in this format 'C:/User/Documents/peaks/data/feateurelst_annotated_N500.xlsx'
-outputlocation_and_name = 'C:/Users/DVrin/OneDrive/Documenten/avans/stage_MM/XCMS/Feature_list_centwave_N5000.xlsx'
+#output location file string isnt allowerd to contain (
+outputlocation_and_name = 'F:/avans/stage MM/peakpicking/Feature_list_centwave_N5000.xlsx'
 
 # number howmuch the MZ value is allowed to differ from the results found in other databases
 PPM = 0.0000500
-
 
 ##########################################
 # reading MZ_values and feature names in #
 ##########################################
 
 # opening lists
-possible_result = []
 mz_values = []
 
 # reading in data
@@ -49,236 +49,151 @@ with open (file_to_feature_list,'r') as f:
     for line in f:
         line = line.split(',')
         # all feature names will be put in the possible result list to find out which fetures had no hit later on
-        possible_result.append(line[0])
-        #print(line)
         line = line[0:2]
         mz_values.append(line)
 
-possible_result = possible_result[1:]
+
 mz_values = mz_values[1:]
-#print(mz_values)
 
 
-###############################
-# quering in extended database#
-###############################
+################################################
+# check weither output file exsist if so rename#
+################################################
+if os.path.exists(outputlocation_and_name):
+    outputlocation_and_name = ((outputlocation_and_name.split('.'))[0]) +'(1).xlsx'
+    TMP_counter = 2
+    while os.path.exists(outputlocation_and_name):
+        outputlocation_and_name = (outputlocation_and_name.split('('))[0] +'('+ str(TMP_counter) + ').xlsx'
+        TMP_counter += 1
+
+#################
+# Database check#
+#################
+TMP_databases = os.listdir(folder_to_databases)
+databases = []
+for item in TMP_databases:
+    if item[-3:] == '.db':
+        if 'extended' not in item:
+            databases.append(item)
+
+TMP_databases.clear()
+
+
+####################################
+# querying in the extended database#
+####################################
 
 #create te connection to extendend database
 extended_database = folder_to_databases + 'extended.db'
-print(extended_database)
-# database connection
-extended = sqlite3.connect(extended_database)
-c = extended.cursor()
-
-# quering for items found
-
-result = []
-result_found = []
-for item in mz_values:
-    item_MZ = item[1]
-    #trhough the following line a range around the found MZ value is queried
-    itemA = float(item_MZ) - (PPM/2)
-    itemB = float(item_MZ) + (PPM/2)
-
-    # the Query in the extended database
-    query = 'SELECT extended.fullmz, extended.fullformula, extended.adduct, extended.finalcharge, extended.struct_id, structures.smiles FROM extended ' \
-            'INNER JOIN structures ON extended.struct_id = structures.struct_id ' \
-            'WHERE extended.fullmz >= '+ str(itemA) +' AND extended.fullmz <= '+ str(itemB) +';'
-
-    # retrieve result in for loop becouse then it retrieve multiple results
-    for row in c.execute(query):
-        #print(row)
-
-        #delte MZ is calculated for easy lookup howmuch found result differs from given result
-        delta_MZ = max(float(item_MZ),float(row[0])) - (min(float(item_MZ),float(row[0])))
-
-        #TMP String is the Table header
-        TMP_string = ('Feature, Peaklist_Mz_Value, Delta_MZ, extended.fullmz,  extended.fullformula, extended.adduct, extended.finalcharge, extended.struct_id, structures.smiles FROM extended ')
-
-        #Row is the data and how it will be enterd into excel
-        row = (item[0].replace('"','')+  ',' + item_MZ + ',' + str(delta_MZ) + ',' + str(row[0])+ ',' + str(row[1])+ ',' + str(row[2])+ ',' + str(row[3])+ ',' + str(row[4])+ ',' + str(row[5]))
-
-        # if there is an result it will be added
-        result.append(row)
-
-# if an possible result is not found inside the found result does that mean the the result has not been found in the extended database
-#when an featurse isnt found in the extended datbase does it mean it does not excist in other databases
-# thus to still inform users that there were no hit NA's will be added in the data frame
-for item in possible_result:
-    if item not in result_found:
-        item = ( item.replace('"','') + ',NA,NA,NA,NA,NA,NA,NA,NA')
-        result.append(item)
-
-# sort the result so you dony have all the NA mz values at the end of the file
-result = (sorted(result))[:]
-
-#print(result)
 
 
 
-
-
-
-
-
-#############################
-# quering in other databases#
-#############################
-
-# create a list of all found databases
-databases = os.listdir(folder_to_databases)
-#remoce the extended versions of the datbases found
-for line in databases:
-    if 'extended' in line:
-        databases.remove(line)
-print(databases)
-
-# opening list
-databases_used = []
-
-
-# goes through eery found database
-for database in databases:
-    print(database)
-    if 'extended'  in database:
-        print('wrong datbase')
-    else:
-        try:
-
-            # creates a connection with te database
-            database1 = folder_to_databases + database
-            extended = sqlite3.connect(database1)
-            c = extended.cursor()
-
-            # Counter is to count where to add the result to
-            counter = -1
-
-            for item in result:
-                # for appending the found result back to the table in the making
-                counter += 1
-                #retrieve full_structure of found MZ_value
-                item = (item.split(','))[8]
-                #print(item)
-
-                #if there is a found structure
-                if item != "NA":
-                    #print(item)
-
-                    query = ('SELECT compoundname, description, baseformula, identifier, charge FROM base '
-                             ' WHERE structure = "' + item + '" '
-                             ' LIMIT 10;')
-
-                    #query = ('SELECT * from base LIMIT 10 ;')
-
-                    # TMP hit is for howmany times a hit is found inside the datbase query. when a multiple hits are
-                    # output will be separated with ---
-                    TMP_hit_count = 0
-                    TMP_item = ''
-
-                    #for every found hit inside the query of the database
-                    for row in c.execute(query):
-                        TMP_hit_count += 1
-
-                        # this removes the found , inside of the query. or else this will mess up the excel table
-                        row0 = str(row[0]).replace(',',' ')
-                        row1 = str(row[1]).replace(',', ' ')
-                        row2 = str(row[2]).replace(',', ' ')
-                        row3 = str(row[3]).replace(',', ' ')
-                        row4 = str(row[4]).replace(',', ' ')
-                        if TMP_hit_count == 1:
-                            TMP_item = (row0) + ',' + (row1) + ',' + (row2) + ',' + (row3) + ',' + (row4) +','
-
-                        else:
-                            # relacing , and adding ---
-                            TMP_item = TMP_item.split(',')
-                            row0 = str(row[0]).replace(',', ' ')
-                            row1 = str(row[1]).replace(',', ' ')
-                            row2 = str(row[2]).replace(',', ' ')
-                            row3 = str(row[3]).replace(',', ' ')
-                            row4 = str(row[4]).replace(',', ' ')
-                            row0 = TMP_item[0] + '---' + row0
-                            row1 = TMP_item[1] + '---' + row1
-                            row2 = TMP_item[2] + '---' + row2
-                            row3 = TMP_item[3] + '---' + row3
-                            row4 = TMP_item[4] + '---' + row4
-
-                            TMP_item = (row0) + ',' + (row1) + ',' + (row2) + ',' + (row3) + ',' + (row4) + ','
-
-                    result[counter] = result[counter] + ',' + TMP_item
-
-                # if no result is found inside this database a NA will be added
-                else:
-                    result[counter] = result[counter] + ',NA,NA,NA,NA,NA,'
-
-
-            databases_used.append(database)
-        except:
-            print('an error occourd while parsing a database. database corrupted?????????')
-
-        # checking amount of " , " to check if there arnt any hits in the current database
-        # Those who didnt have an hit will have NA later added
-        TMP_hit_count = []
-        for row in result:
-            TMP_hit_count.append(len(row.split(',')))
-        TMP_hit_count = max(TMP_hit_count)
-
-        counter = -1
-        for row in result:
-            counter += 1
-            TMP_row = len(row.split(','))
-            if TMP_row != TMP_hit_count:
-                result[counter] = result[counter] + 'NA,NA,NA,NA,NA,'
-
-
-query_items = ['compoundname', 'description', 'baseformula', 'identifier', 'charge']
-
-#################################
-# removing empty lines in result#
-#################################
-counter = 0
-for line in result:
-
-    line = line.replace(',,',',')
-    result[counter] = line
-    counter += 1
-
-
-for database in databases_used:
-    for item in query_items:
-        TMP_string = TMP_string + ',' + str(database) + '.' + str(item)
-
-TMP_string = TMP_string.split(',')
-########################
-# writing to excel file#
-########################
 
 workbook = xlsxwriter.Workbook(outputlocation_and_name)
 worksheet = workbook.add_worksheet()
 
 row = 0
-col = 0
-max_rows = len(TMP_string)
+column = 0
+
+primal_header = ['Feature','inital_mz','Delta_mz','found_mz',  'fullformula', 'adduct', 'finalcharge', 'smiles', 'struct_id']
+query_items = ['compoundname', 'description', 'baseformula', 'identifier', 'charge']
+for item in primal_header:
+    worksheet.write(row,column,item)
+    column += 1
+
+for database in databases:
+    #column += 1
+    database = database[:-3]
+    query_items =  (database + '.compound_name,' + database + '.description,' + database + '.baseformula,' + database + '.identifier,' + database + '.charge,').split(',')
+    for item in query_items:
+        column += 1
+        worksheet.write(row, column, item)
+
+# database connection
+extended = sqlite3.connect(extended_database)
+c = extended.cursor()
+
+for item in mz_values:
+    item_MZ = item[1]
+    Feature = item[0]
+
+    # the Query in the extended database
+    query = 'SELECT extended.fullmz, extended.fullformula, extended.adduct, extended.finalcharge, structures.smiles, extended.struct_id FROM extended ' \
+            'INNER JOIN structures ON extended.struct_id = structures.struct_id ' \
+            'WHERE extended.fullmz >= '+ str(float(item[1]) - (PPM/2)) +' AND extended.fullmz <= '+ str(float(item[1]) + (PPM/2)) +';'
+
+    # retrieve result in for loop becouse then it retrieve multiple results
+    for hit in c.execute(query):
+        #print(item)
+        column = 3
+        row += 1
+        worksheet.write(row, 0, item[0])
+        worksheet.write(row, 1, item[1])
+        worksheet.write(row, 2, max(float(item_MZ), float(hit[0])) - (min(float(item_MZ), float(hit[0]))))
+        smiles = hit[-2]
+
+        for item_a in hit:
+            worksheet.write(row,column,item_a)
+            column += 1
+
+        #column += 1
+        column = 9
+        counter = 0
 
 
-for line in result:
-    row += 1
-    col = 0
-    line = line.split(',')
 
-    for item in line:
-        if col >= max_rows:
-            break
-        else:
-            worksheet.write(row, col, item)
-            col += 1
 
-row = 0
-col = 0
+        for database in databases:
+            column += 1
+            counter += 1
+            database = folder_to_databases + database
+            database_a = sqlite3.connect(database)
+            C = database_a.cursor()
+            query = ('SELECT compoundname, description, baseformula, identifier, charge FROM base '
+                     ' WHERE structure = "' + smiles + '" '
+                                                     ' LIMIT 10;')
 
-for item in TMP_string:
-    worksheet.write(row,col,item)
-    col += 1
+            C.execute(query)
+            data =  C.fetchall()
 
+            if len(data) == 0:
+                for i in range(5):
+                    worksheet.write(row, column, 'NA')
+                    column +=1
+
+            elif (len(data)) != 1:
+                compound = ''
+                description = ''
+                baseformula = ''
+                identifier = ''
+                charge = ''
+                for item_b in data:
+
+                    compound = compound + '---' + str(item_b[0])
+                    description = description + '---' + str(item_b[1])
+                    baseformula = baseformula + '---' + str(item_b[2])
+                    identifier = identifier + '---' + str(item_b[3])
+                    charge = charge + '---' + str(item_b[4])
+
+                data = [compound[3:],description[3:],baseformula[3:],identifier[3:],charge[3:]]
+
+                for query_items in data:
+
+                    if column / 6 == (1.5 + counter):
+                     column +=1
+                    worksheet.write(row, column, query_items)
+                    column += 1
+
+            else:
+                for query_items in data:
+                    if column / 6 == (1.5 + counter):
+                     column +=1
+
+                    for item_c in query_items:
+                        if item_c == None:
+                            worksheet.write(row, column, 'NA')
+
+                        worksheet.write(row, column, item_c)
+                        column += 1
 
 workbook.close()
-
