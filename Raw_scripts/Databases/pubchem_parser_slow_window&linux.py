@@ -188,27 +188,21 @@ for file in files:
             Output.write(line)
 Output.close()
 
-database_name = Download_location + 'pubchem.db'
-conn = sqlite3.connect(database_name)
-
-c = conn.cursor()
-
-c.execute("CREATE TABLE Base ("
-   "identifier varchar(16) NOT NULL,"
-   "compoundname nvarchar(30) NOT NULL,"
-   "baseformula nvarchar(20) NOT NULL,"
-   "structure nvarchar(30) NOT NULL,"
-   "charge int NOT NULL,"
-   "description Text() NOT NULL,"
-   "CONSTRAINT Base_pk PRIMARY KEY (identifier)"
-");")
 
 
-#data = open(output)
-#data = csv.rea
-#data.to_sql('Base', conn, if_exist='append', index = True)
 
+#########################
+# database builder #
+import sqlite3
+import os
+import time
+import csv
+#############
+# Variables #
+#############
 
+pubchem_tsv = 'F:/avans/stage MM/databases/pubchem.csv'
+dabatase_location = 'F:/avans/stage MM/databases/'
 #######################
 # database creation   #
 #######################
