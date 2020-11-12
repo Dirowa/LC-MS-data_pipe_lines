@@ -1,0 +1,31 @@
+import os
+
+
+path = 'F:/avans/stage MM/databases/pubchembackup/'
+output = 'pubchem.csv'
+
+TMP_files = os.listdir(path)
+files = []
+counter = 0
+for file in TMP_files:
+    if 'txt' in file:
+        files.append(file)
+file2 = path+ output
+file1 = open(file2,'w')
+
+
+
+file1.write("compoundname,description,baseformula,identifier,charge,structure")
+for file in files:
+    file = path + file
+    with open(file,'r') as f:
+        next(f)
+        for line in f:
+            counter += 1
+            identifier = 'PC_ID' + str(counter)
+            line = line.replace(' ', '').replace(' ', '').replace(',','.').rstrip().split('\t')
+            #print(line)
+            string = (line[1]+ ',' + line[5] +',' + line[2] +','+ str(identifier) +',' + line[4]+',' +line[3])
+            #print(string)
+            file1.write(string)
+file1.close()
