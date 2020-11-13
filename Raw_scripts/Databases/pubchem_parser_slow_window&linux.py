@@ -166,3 +166,14 @@ for file in files:
     os.remove(file)
 file1.close()
 
+
+
+
+Defaulting to 'Canonical'.Valid SMILES output options include:
+
+ - - - 
+ Absolute AtomAtomMap AtomicMass AtomicMassStrict Canonical Cx2dCoordinates Cx3dCoordinates CxAtomLabel CxAtomValue CxCoordinates CxFragmentGroup CxMulticenter CxPolymer CxRadical CxSmiles CxSmilesWithCoords Default Generic InChILabelling Isomeric Stereo StereoCisTrans StereoExTetrahedral StereoTetrahedral Unique UniversalSmiles UseAromaticSymbols
+ - - - 
+
+Defaulting to 'Canonical'.
+
