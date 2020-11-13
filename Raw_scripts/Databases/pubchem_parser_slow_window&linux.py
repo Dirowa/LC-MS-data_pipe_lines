@@ -163,5 +163,6 @@ for file in files:
             #print(string)
             #print(len(string.split(',')))
             file1.write(string)
+    os.remove(file)
 file1.close()
 
