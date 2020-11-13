@@ -6,6 +6,7 @@ os.system('pip install wget')
 import wget
 import gzip
 import shutil
+import subprocess
 #############
 # Variables #
 #############
@@ -106,7 +107,7 @@ for item in items:
                             Structure = item_names[-1]
                             monoisotopic_mass = numeric_data[-1]
 
-                            
+
                             try:
                                 # item to write for table
                                 string = ( str(UPAC_name) +  '\t' + str("NA") + '\t'  + str(Forumla)   + '\t'  + str(charge) +  '\t'  + str(Structure)   + "\n")
@@ -147,8 +148,7 @@ for file in TMP_files:
 file2 = Download_location + output_name
 file1 = open(file2,'w')
 
-string = (str(UPAC_name) + '\t' + str("NA") + '\t' + str(Forumla) + '\t' + str(charge) + '\t' + str(Structure) + "\n")
-
+file1.write("compoundname,description,baseformula,identifier,charge,structure\n")
 
 for file in files:
     file = Download_location + file
@@ -163,9 +163,5 @@ for file in files:
             #print(string)
             #print(len(string.split(',')))
             file1.write(string)
-    os.remove(file)
 file1.close()
-
-
-
 
