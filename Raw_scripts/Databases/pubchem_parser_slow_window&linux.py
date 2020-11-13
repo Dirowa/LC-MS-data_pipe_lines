@@ -1,32 +1,21 @@
-
-########################################
+#######################################
 # pubchem parser vor windows           #
 #########################################
-
-
 import os
-
 os.system('pip install wget')
-
 import wget
 import gzip
 import shutil
-import subprocess
-
-
 #############
 # Variables #
 #############
-
 Download_location = '/home/thor/Donny/databases/databases/pubchem/ftp.ncbi.nlm.nih.gov/pubchem/Compound/CURRENT-Full/XML/'
-
-
-
+output_name = 'pubchem_combined.csv'
 ##############################
 # retrieving list to download#
 ##############################
 items = []
-identifier = 0
+
 proc = subprocess.Popen("curl ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/CURRENT-Full/XML/", stdout=subprocess.PIPE, shell=True)
 (out, err) = proc.communicate()
 out = str(out).split(' ')
@@ -50,13 +39,8 @@ for item in out:
 
 
 ########## Download #################
-
-
-print(items)
 itmes_downloaded = os.listdir(Download_location)
-
 for item in items:
-
     if item not in itmes_downloaded:
         #check wether the item is already downloaded
         url = "ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/CURRENT-Full/XML/" + item
@@ -64,20 +48,14 @@ for item in items:
         print ("start downloading " + url + " will be send to " + Download_location)
         wget.download(url, location, bar=bar_custom)
 
-
-
     ########## Unzipping #############
-
     file = Download_location + item
     try:
         print("unzipping file " + item)
-
         with gzip.open(file, 'rb') as f_in:
             with open(file[:-3], 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
-
         print('finisht to unzip')
-
 
         # READING UNZIPPED FILE#
         f1 = file[:-3]
@@ -85,13 +63,10 @@ for item in items:
         try:
             with open(f1, 'r') as f:
 
-                name = (f1 + ".txt")
+                name = (f1 + ".tsv")
                 pubchem_database = open(name, 'w')
-
-
-                header = 'identifier' + ',' + 'compoundname' +  ','  + 'baseformula' +  ','  + 'structure' +  ','  + 'charge' +  ','  + 'description' + "\n"
+                header = 'compoundname' +  '\t'  + 'baseformula' +  '\t'  + 'structure' +  '\t'  + 'charge' +  '\t'  + 'description' + "\n"
                 pubchem_database.write(header)
-
 
                 print('start reading ' + f1)
                 # read eveyr line in
@@ -112,7 +87,6 @@ for item in items:
                                     # print(line.rstrip())
                                     item_names.append(line.rstrip())
 
-
                                 elif '<PC-InfoData_value_fval' in line:
                                     # line = next(f)
                                     # info_counter += 1
@@ -121,7 +95,6 @@ for item in items:
                                         "</PC-InfoData_value_fval>", '')
                                     # print(line)
                                     numeric_data.append(line)
-
                                 line = next(f)
 
                             #####################
@@ -132,11 +105,11 @@ for item in items:
                             Forumla = item_names[-3]
                             Structure = item_names[-1]
                             monoisotopic_mass = numeric_data[-1]
-                            identifier += 1
-                            identifier_pubchem = "pubchem" + (str(identifier))
+
+                            
                             try:
                                 # item to write for table
-                                string = (str(identifier_pubchem) +  ','  + str(UPAC_name) +  ','  + str(Forumla) +  ','  + str(Structure) +  ','  + str(charge) +  ','  + str("NA") + "\n")
+                                string = ( str(UPAC_name) +  '\t' + str("NA") + '\t'  + str(Forumla)   + '\t'  + str(charge) +  '\t'  + str(Structure)   + "\n")
                                 pubchem_database.write(string)
                                 # print(string)
 
@@ -165,62 +138,30 @@ for item in items:
 # parsed into on tsv file#
 ###########################
 
-
-
-
 TMP_files = os.listdir(Download_location)
 files = []
+counter = 0
 for file in TMP_files:
-    if file[-3:]:
+    if 'txt' in file:
         files.append(file)
+file2 = Download_location + output_name
+file1 = open(file2,'w')
 
-TMP_files = []
+string = (str(UPAC_name) + '\t' + str("NA") + '\t' + str(Forumla) + '\t' + str(charge) + '\t' + str(Structure) + "\n")
 
-output = Download_location + output_name
-Output = open(output,'w')
 
 for file in files:
     file = Download_location + file
-    with open (file, 'r') as f:
+    with open(file,'r') as f:
+        next(f)
         for line in f:
-            #line = line.replace('\t',',')
+            counter += 1
+            identifier = 'PC_ID' + str(counter)
+            line = line.replace(' ', '').replace(' ', '').replace(',','.').rstrip().split('\t')
             #print(line)
-            Output.write(line)
-Output.close()
+            string = (line[0]+ ',' + line[1] +',' + line[2] +','+ str(identifier) +',' + line[3]+',' +line[4] + '\n')
+            #print(string)
+            #print(len(string.split(',')))
+            file1.write(string)
+file1.close()
 
-
-
-
-#########################
-# database builder #
-import sqlite3
-import os
-import time
-import csv
-#############
-# Variables #
-#############
-
-pubchem_tsv = 'F:/avans/stage MM/databases/pubchem.csv'
-dabatase_location = 'F:/avans/stage MM/databases/'
-#######################
-# database creation   #
-#######################
-
-database_name = dabatase_location + 'pubchem.db'
-conn = sqlite3.connect(database_name)
-c = conn.cursor()
-try:
-    c.execute('''CREATE TABLE BASE                
-                ([identifier] varchar(16) PRIMARY KEY NOT NULL, [compoundname]  varchar(30) NOT NULL, [baseformula]  varchar(20) NOT NULL, [structure] varchar(30) NOT NULL, [charge]  integer NOT NULL, [description]  Text NOT NULL)''')
-except:
-    print("database already excist")
-
-with open(pubchem_tsv,'r') as file:
-        next(file)
-        for line in file:
-            to_db = line.rstrip().replace(' ','').replace(' ','').split('\t')
-            #print(to_db[0])
-            Import = ("INSERT INTO BASE (identifier,compoundname,baseformula,structure,charge,description) "
-                          "VALUES (" +"'"+ str(to_db[0]) +"'"','"'"+ str(to_db[1]) +"'"','"'"+ str(to_db[2]) +"'"','"'"+ str(to_db[3]) +"'"','"'"+ str(to_db[4]) +"'"','"'"+ str(to_db[5]) +"'"");")
-            c.execute(Import)
