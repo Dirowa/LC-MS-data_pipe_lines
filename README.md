@@ -1,4 +1,4 @@
-# LC-MS-data_pipe_lines
+# LC-MS data pipeline
 This LC-MS data pipeline is for selection of the best algorithm and settings for lc-ms data
 The data is tested against data who doesnt contain a blank sample
 The pooled sample is used to optimese the XCMS settings by IPO
