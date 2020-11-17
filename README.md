@@ -7,4 +7,4 @@ The feature output can be used create a venn diagram to select majority vote
 Another possibility is to annotate the data first with installed databases and create a majority vote diagram of that
 
 
-![alt text](https://github.com/Dirowa/LC-MS-data_pipe_lines/blob/master/Flowchart.png)
+![alt text](https://github.com/Dirowa/LC-MS-data_pipe_lines/blob/master/Data_pipeline.png)
