@@ -5,3 +5,6 @@ The pooled sample is used to optimese the XCMS settings by IPO
 These settings are used for the settings in the algorithms
 The feature output can be used create a venn diagram to select majority vote
 Another possibility is to annotate the data first with installed databases and create a majority vote diagram of that
+
+
+![alt text](https://github.com/NielsMol/Fairheart-in-the-cloud-with-Galaxy/blob/master/overview%20building%20galaxy%20instance.png)
