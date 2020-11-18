@@ -17,8 +17,8 @@ BiocManager::install("IPO")
 
 # path to data
 path <- "F:/avans/stage MM/test_data_sherlok/test_data/"
-
-
+output_folder <- 'F:/avans/stage MM/XCMS/output/'
+name_safe <- 'XCMS_default'
 ################
 # Library's####
 ##############
@@ -134,10 +134,10 @@ head(rtime(raw_data))
 # generatiing ion graph#
 ########################
 
-raw_data %>%
-  filterRt(rt = rtr) %>%
-  filterMz(mz = mzr) %>%
-  plot(type = "XIC")
+#raw_data %>%
+#  filterRt(rt = rtr) %>%
+#  filterMz(mz = mzr) %>%
+#  plot(type = "XIC")
 
 
 ###########################################3#
@@ -183,22 +183,22 @@ raw_data %>%
 ################################################
 
 #peakpicking
-cwp <- CentWaveParam(
-  ppm = 25,
-  peakwidth = c(20, 80),
-  snthresh = 10,
-  prefilter = c(3, 100),
-  mzCenterFun = "wMean",
-  integrate = 2L,
-  mzdiff = -0.001,
-  fitgauss = FALSE,
-  noise = 5000,
-  verboseColumns = FALSE,
-  roiList = list(),
-  firstBaselineCheck = TRUE,
-  roiScales = numeric(),
-  extendLengthMSW = FALSE
-)
+cwp <- CentWaveParam()
+#  ppm = 25,
+#  peakwidth = c(20, 80),
+#  snthresh = 10,
+#  prefilter = c(3, 100),
+#  mzCenterFun = "wMean",
+#  integrate = 2L,
+#  mzdiff = -0.001,
+#  fitgauss = FALSE,
+#  noise = 5000,
+#  verboseColumns = FALSE,
+#  roiList = list(),
+#  firstBaselineCheck = TRUE,
+#  roiScales = numeric(),
+#  extendLengthMSW = FALSE
+#)
 
 
 xdata <- findChromPeaks(raw_data, param = cwp)
@@ -209,14 +209,14 @@ xdata <- findChromPeaks(raw_data, param = cwp)
 #########################################
 
 
-mpp <- MergeNeighboringPeaksParam(
-  expandRt = 4,
-  expandMz = 0,
-  ppm = 10,
-  minProp = 0.75,
-  msLevel = 1
+mpp <- MergeNeighboringPeaksParam()
+#  expandRt = 4,
+#  expandMz = 0,
+#  ppm = 10,
+#  minProp = 0.75,
+#  msLevel = 1
   
-)
+#)
 
 xdata <- refineChromPeaks(xdata, mpp)
 
@@ -246,20 +246,20 @@ xdata <- refineChromPeaks(xdata, mpp)
 ##########################
 #adjust r time###########
 ########################
-obi <- ObiwarpParam(
-  binSize = 1,
-  centerSample = integer(),
-  response = 100L,
-  distFun = "cor_opt",
-  gapInit = 0.3,
-  gapExtend = 2.4,
-  factorDiag = 2,
-  factorGap = 1,
-  localAlignment = FALSE,
-  initPenalty = 0,
-  subset = integer(),
-  subsetAdjust = c("average", "previous")
-)
+obi <- ObiwarpParam()
+#  binSize = 1,
+#  centerSample = integer(),
+#  response = 100L,
+#  distFun = "cor_opt",
+#  gapInit = 0.3,
+#  gapExtend = 2.4,
+#  factorDiag = 2,
+#  factorGap = 1,
+#  localAlignment = FALSE,
+#  initPenalty = 0,
+#  subset = integer(),
+#  subsetAdjust = c("average", "previous")
+#)
 
 xdata <- adjustRtime(xdata, param = obi)
 
@@ -305,8 +305,8 @@ xdata <- adjustRtime(xdata, param = obi)
 
 # group the parametrs
 #pgp_subs <- PeakGroupsParam(minFraction = 0.85,
-                            #subset = which(xdata$sample_type == "QC"),
-                            #subsetAdjust = "average", span = 0.4)
+#subset = which(xdata$sample_type == "QC"),
+#subsetAdjust = "average", span = 0.4)
 
 
 
@@ -318,7 +318,7 @@ xdata <- adjustRtime(xdata, param = obi)
 #plot(chromatogram(xdata, aggregationFun = "sum"),
 #     col = clrs, peakType = "none")
 #plotAdjustedRtime(xdata, col = clrs, peakGroupsPch = 1,
-                  #peakGroupsCol = "#00ce0040")
+#peakGroupsCol = "#00ce0040")
 
 
 
@@ -326,11 +326,12 @@ xdata <- adjustRtime(xdata, param = obi)
 # group into features#
 ######################
 
-pdp <- PeakDensityParam(sampleGroups = xdata$sampleType,
-                        bw = 30,
-                        minFraction = 0.4,
-                        minSamples = 1,
-                        binSize = 0.25)
+pdp <- PeakDensityParam(sampleGroups = xdata$sampleType)
+                        #,
+                        #bw = 30,
+                        #minFraction = 0.4,
+                        #minSamples = 1,
+                        #binSize = 0.25)
 
 
 xdata <- groupChromPeaks(xdata, param = pdp)
@@ -338,13 +339,13 @@ xdata <- groupChromPeaks(xdata, param = pdp)
 #####################
 # fill group peaks##
 ###################
-fill <- FillChromPeaksParam(
-  expandMz = 0,
-  expandRt = 0,
-  ppm = 0,
-  fixedMz = 0,
-  fixedRt = 0
-)
+fill <- FillChromPeaksParam()
+#  expandMz = 0,
+#  expandRt = 0,
+#  ppm = 0,
+#  fixedMz = 0,
+#  fixedRt = 0
+#)
 xdata <- fillChromPeaks(xdata, param = fill)
 
 res <- quantify(xdata, value = "into")
@@ -357,10 +358,20 @@ rowData(res)
 #intensity of found features
 head(assay(res))
 head(featureValues(xdata, value = "into"))
-
-
 head(featureSummary(xdata, group = xdata$class))
 
 
+#meta data samples
+filename = paste0(output_folder,'Sample_metadata_',name_safe,'.txt')
+write.csv(colData(res), filename)
 
+#feature list
+filename = paste0(output_folder,'Feature_list_',name_safe,'.txt')
+write.csv(rowData(res),filename) 
 
+#intensity of found features
+#head(assay(res))
+filename = paste0(output_folder,'feature_intensity_',name_safe,'.txt')
+write.csv((featureValues(xdata, value = "into")), "F:/avans/stage MM/XCMS/output/feature_intensity_centwave_N5000.txt")
+
+head(featureSummary(xdata, group = xdata$class))
