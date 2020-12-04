@@ -1,0 +1,146 @@
+#################
+# install things#
+#################
+#install.packages("BiocManager")
+#BiocManager::install(c("xcms","RColorBrewer","pander","pheatmap","SummarizedExperiment","magrittr","MSnbase"))
+#install.packages('doParallel','stats')
+#BiocManager::install("IPO")
+#BiocManager::install("CAMERA")
+
+###############
+# Variables   #
+###############
+
+# path to data & metadata (tsv format)
+path <- "F:/avans/stage MM/test_data_sherlok/test_data/"
+output_folder <- 'something/'
+unique_name <- ''
+
+####################
+# Setting variables#
+####################
+
+
+#peakpicking Centwave
+cwp <- CentWaveParam(
+  ppm = 42.5,
+  peakwidth = c(11, 57.2),
+  snthresh = 10,
+  prefilter = c(3, 100),
+  mzCenterFun = "wMean",
+  integrate = 1L,
+  mzdiff = 0.0045,
+  fitgauss = FALSE,
+  noise = 5000,
+  verboseColumns = FALSE,
+  roiList = list(),
+  firstBaselineCheck = TRUE,
+  roiScales = numeric(),
+  extendLengthMSW = FALSE
+)
+
+mpp <- MergeNeighboringPeaksParam(
+  expandRt = 4,
+  expandMz = 0,
+  ppm = 10,
+  minProp = 0.75
+)
+
+obi <- ObiwarpParam(
+  binSize = 0.682,
+  centerSample = 3,
+  response = 1L,
+  distFun = "cor",
+  gapInit = 0.544,
+  gapExtend = 2.4,
+  factorDiag = 2,
+  factorGap = 1,
+  localAlignment = FALSE,
+  initPenalty = 0,
+  subset = integer(),
+  subsetAdjust = c("average", "previous")
+)
+
+pdp <- PeakDensityParam(sampleGroups = xdata$sampleType,
+                        bw = 0.25,
+                        minFraction = 1,
+                        minSamples = 1,
+                        binSize = 0.25)
+
+fill <- FillChromPeaksParam(
+  expandMz = 0,
+  expandRt = 0,
+  ppm = 0,
+  fixedMz = 0,
+  fixedRt = 0
+)
+
+
+################
+# Library's####
+##############
+library(BiocStyle)
+library(xcms)
+library(faahKO)
+library(pander)
+library(xcms)
+library(faahKO)
+library(RColorBrewer)
+library(pander)
+library(magrittr)
+library(pheatmap)
+library(SummarizedExperiment)
+library(stats)
+
+
+#############################################
+##  READING DATA IN & correctiong format ####
+###########################################
+
+# importing the files from the folder into R. all !!!! all files must be .mzML and one .tsv <-= sample meta data
+data_files <- list.files(path = path, pattern = "*.mzML", full.names = TRUE, recursive = TRUE)
+Sample_metadata <- list.files(path = path, pattern = "*.tsv", full.names = TRUE, recursive = TRUE)            
+
+# create an table of the meta data
+data_frame <- read.table(file = Sample_metadata, sep = '\t', header = TRUE)
+
+# order the dataframe by name (so all pathfiles will be going to the right row)
+data_frame <- data_frame[order(data_frame$sample_name),]
+
+# convert the table to an dataframe
+data_frame <- as.data.frame.matrix(data_frame) 
+
+#order the datafiles oin name
+data_files <- sort(data_files)
+
+data_files
+data_frame
+
+
+############### Analysing data   ##########################
+raw_data <- readMSData(files = data_files, msLevel = 1, pdata =  new("NAnnotatedDataFrame", data_frame), mode = "onDisk")
+xdata <- findChromPeaks(raw_data, param = cwp)
+xdata <- refineChromPeaks(xdata, mpp)
+xdata <- adjustRtime(xdata, param = obi)
+xdata <- groupChromPeaks(xdata, param = pdp)
+xdata <- fillChromPeaks(xdata, param = fill)
+
+##############################
+#Quantifying output and data #
+##############################
+res <- quantify(xdata, value = "into")
+#meta data samples
+safe_name <- paste0(output_folder,'sample_meta_data_csv_XCMS',unique_name,'txt')
+write.csv(colData(res), safe_name)
+
+#feature list
+safe_name <- paste0(output_folder,'Featurelist_XCMS',unique_name,'txt')
+write.csv(rowData(res),safe_name) 
+
+#intensity of found features
+#head(assay(res))
+safe_name <- paste0(output_folder,'feature_intensity_XCMS',unique_name,'txt')
+write.csv((featureValues(xdata, value = "into")), safe_name)
+
+head(featureSummary(xdata, group = xdata$class))
+
