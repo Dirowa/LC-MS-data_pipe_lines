@@ -13,8 +13,8 @@
 
 # path to data & metadata (tsv format)
 path <- "F:/avans/stage MM/test_data_sherlok/test_data/"
-output_folder <- 'something/'
-unique_name <- ''
+output_folder <- 'F:/avans/stage MM/peakpicking 2/'
+unique_name <- 'default'
 
 ####################
 # Setting variables#
@@ -22,58 +22,59 @@ unique_name <- ''
 
 
 #peakpicking Centwave
-cwp <- CentWaveParam(
-  ppm = 42.5,
-  peakwidth = c(11, 57.2),
-  snthresh = 10,
-  prefilter = c(3, 100),
-  mzCenterFun = "wMean",
-  integrate = 1L,
-  mzdiff = 0.0045,
-  fitgauss = FALSE,
-  noise = 5000,
-  verboseColumns = FALSE,
-  roiList = list(),
-  firstBaselineCheck = TRUE,
-  roiScales = numeric(),
-  extendLengthMSW = FALSE
-)
+cwp <- CentWaveParam()
+#  ppm = 42.5,
+#  peakwidth = c(11, 57.2),
+#  snthresh = 10,
+#  prefilter = c(3, 100),
+#  mzCenterFun = "wMean",
+#  integrate = 1L,
+#  mzdiff = 0.0045,
+#  fitgauss = FALSE,
+#  noise = 5000,
+#  verboseColumns = FALSE,
+#  roiList = list(),
+#  firstBaselineCheck = TRUE,
+#  roiScales = numeric(),
+#  extendLengthMSW = FALSE
+#)
 
-mpp <- MergeNeighboringPeaksParam(
-  expandRt = 4,
-  expandMz = 0,
-  ppm = 10,
-  minProp = 0.75
-)
+bwdpd <- 0.25
+minFractiondpd <- 1
+minSamplesdpd <- 1
+binSizedpd <- 0.25
 
-obi <- ObiwarpParam(
-  binSize = 0.682,
-  centerSample = 3,
-  response = 1L,
-  distFun = "cor",
-  gapInit = 0.544,
-  gapExtend = 2.4,
-  factorDiag = 2,
-  factorGap = 1,
-  localAlignment = FALSE,
-  initPenalty = 0,
-  subset = integer(),
-  subsetAdjust = c("average", "previous")
-)
+mpp <- MergeNeighboringPeaksParam()
+#  expandRt = 4,
+#  expandMz = 0,
+#  ppm = 10,
+#  minProp = 0.75
+#)
 
-pdp <- PeakDensityParam(sampleGroups = xdata$sampleType,
-                        bw = 0.25,
-                        minFraction = 1,
-                        minSamples = 1,
-                        binSize = 0.25)
+obi <- ObiwarpParam()
+#  binSize = 0.682,
+#  centerSample = 3,
+#  response = 1L,
+#  distFun = "cor",
+#  gapInit = 0.544,
+#  gapExtend = 2.4,
+#  factorDiag = 2,
+#  factorGap = 1,
+#  localAlignment = FALSE,
+#  initPenalty = 0,
+#  subset = integer(),
+#  subsetAdjust = c("average", "previous")
+#)
 
-fill <- FillChromPeaksParam(
-  expandMz = 0,
-  expandRt = 0,
-  ppm = 0,
-  fixedMz = 0,
-  fixedRt = 0
-)
+
+
+fill <- FillChromPeaksParam()
+#  expandMz = 0,
+#  expandRt = 0,
+#  ppm = 0,
+#  fixedMz = 0,
+#  fixedRt = 0
+#)
 
 
 ################
@@ -91,6 +92,7 @@ library(magrittr)
 library(pheatmap)
 library(SummarizedExperiment)
 library(stats)
+library(CAMERA)
 
 
 #############################################
@@ -122,24 +124,57 @@ raw_data <- readMSData(files = data_files, msLevel = 1, pdata =  new("NAnnotated
 xdata <- findChromPeaks(raw_data, param = cwp)
 xdata <- refineChromPeaks(xdata, mpp)
 xdata <- adjustRtime(xdata, param = obi)
+
+pdp <- PeakDensityParam(sampleGroups = xdata$sampleType,
+                        bwdpd,
+                        minFractiondpd,
+                        minSamplesdpd,
+                        binSizedpd)
+
+
 xdata <- groupChromPeaks(xdata, param = pdp)
 xdata <- fillChromPeaks(xdata, param = fill)
 
+
+
+#############
+# annotation#
+#############
+xs <- as(xdata, "xcmsSet")
+an <- xsAnnotate(xs)
+
+anF <- groupFWHM(an)
+xsaC <- groupCorr(anF)
+xsaFI <- findIsotopes(xsaC)
+xsaFA <- findAdducts(xsaFI, polarity="positive")
+
+peaklist <- getPeaklist(xsaFA)
+peaklist <- peaklist[with(peaklist, order(rt, mz)),]
+
+peaklist1 <- select(peaklist, mz, rt, pcgroup, adduct, isotopes)
+
+isolist <- getIsotopeCluster(xsaFA)
+
+
+safe_name <- paste0(output_folder,'peaklistGrouped',unique_name,'.txt')
+write.csv(peaklist1, safe_name)
 ##############################
 #Quantifying output and data #
 ##############################
 res <- quantify(xdata, value = "into")
 #meta data samples
-safe_name <- paste0(output_folder,'sample_meta_data_csv_XCMS',unique_name,'txt')
+safe_name <- paste0(output_folder,'sample_meta_data_csv_XCMS',unique_name,'.txt')
 write.csv(colData(res), safe_name)
 
 #feature list
-safe_name <- paste0(output_folder,'Featurelist_XCMS',unique_name,'txt')
+safe_name <- paste0(output_folder,'Featurelist_XCMS',unique_name,'.txt')
 write.csv(rowData(res),safe_name) 
+
+
 
 #intensity of found features
 #head(assay(res))
-safe_name <- paste0(output_folder,'feature_intensity_XCMS',unique_name,'txt')
+safe_name <- paste0(output_folder,'feature_intensity_XCMS',unique_name,'.txt')
 write.csv((featureValues(xdata, value = "into")), safe_name)
 
 head(featureSummary(xdata, group = xdata$class))
