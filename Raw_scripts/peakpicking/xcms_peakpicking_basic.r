@@ -16,6 +16,24 @@ path <- "F:/avans/stage MM/test_data_sherlok/test_data/"
 output_folder <- 'F:/avans/stage MM/peakpicking 2/'
 unique_name <- 'default'
 
+################
+# Library's####
+##############
+library(BiocStyle)
+library(xcms)
+library(faahKO)
+library(pander)
+library(xcms)
+library(faahKO)
+library(RColorBrewer)
+library(pander)
+library(magrittr)
+library(pheatmap)
+library(SummarizedExperiment)
+library(stats)
+library(CAMERA)
+
+
 ####################
 # Setting variables#
 ####################
@@ -77,22 +95,6 @@ fill <- FillChromPeaksParam()
 #)
 
 
-################
-# Library's####
-##############
-library(BiocStyle)
-library(xcms)
-library(faahKO)
-library(pander)
-library(xcms)
-library(faahKO)
-library(RColorBrewer)
-library(pander)
-library(magrittr)
-library(pheatmap)
-library(SummarizedExperiment)
-library(stats)
-library(CAMERA)
 
 
 #############################################
@@ -178,4 +180,3 @@ safe_name <- paste0(output_folder,'feature_intensity_XCMS',unique_name,'.txt')
 write.csv((featureValues(xdata, value = "into")), safe_name)
 
 head(featureSummary(xdata, group = xdata$class))
-
