@@ -191,6 +191,7 @@ for (i in 1:length(methods))  {
 }
 
 items[[(counter + 1 )]] <- "new_normalized_set.csv"
+items[[(counter + 2 )]] <- "BatchCorrect_import_data_1"
 if (counter == 0){
   print('NO batch correction worked')
 }
@@ -211,6 +212,16 @@ for (i in 1:length(items)){
     variance_dataframe <- sapply(variance_dataframe, var)
     means[[i]] <- mean(variance_dataframe)
   }
+  else if (items[[i]] == 'BatchCorrect_import_data_1') {
+    variance_dataframe <- read.csv('BatchCorrect_import_data_1', header = TRUE, sep = ',')
+    variance_dataframe <- as.data.frame(t(variance_dataframe))
+    colnames(variance_dataframe) <- variance_dataframe[1,]
+    variance_dataframe <- variance_dataframe[grep(QC, variance_dataframe$class),]
+    variance_dataframe <- variance_dataframe[,-1]
+    variance_dataframe <- sapply(variance_dataframe, var)
+    means[[i]] <- mean(variance_dataframe)
+  }
+  
   else {
     print(items[[i]])
     variance_dataframe <- read.csv(items[[i]], header = TRUE, sep = ',')
