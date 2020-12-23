@@ -25,6 +25,10 @@ metanr_packages <- function(){
 }
 metanr_packages()
 
+
+
+
+library(colSu)
 install.packages("pacman")
 
 library(pacman)
@@ -50,6 +54,8 @@ library(dplyr)
 
 install.packages("devtools")
 library(devtools)
+library( phenomis)
+
 
 # Step 2: Install MetaboAnalystR with documentation
 devtools::install_github("xia-lab/MetaboAnalystR", build = TRUE, build_vignettes = TRUE, build_manual =T, force = TRUE)
@@ -58,19 +64,21 @@ devtools::install_github("xia-lab/MetaboAnalystR", build = TRUE, build_vignettes
 # important variables #
 #######################
 
-path_to_metadata <- "F:/avans/stage MM/peakpicking 2/sample_meta_data_csv_XCMSdefault.txt"
-path_to_feature_intensity_table <- "F:/avans/stage MM/peakpicking 2/feature_intensity_XCMSdefault.txt"
+path_to_Data_matrix_xcms <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output/peakpick_outputData_matrix_xcmsdefault.tsv"
+path_to_samplemetadata <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output/peakpick_outputsample_meta_data_XCMSdefault.tsv"
+Path_to_variable_metadata <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output/peakpick_outputVariable_metaDatadefault.tsv"
 
+output <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output"
 # columns names in dataframe of metadata
-metadata <- 'metadata'
-sample_name <- 'sample_name'
-class <- 'class'
+sample_name <- 'X'
+class <- 'sampleType'
 batch <- 'batch'
 injectionOrder <- 'injectionOrder'
 
 #of class (what is the pooled sample code ( QC, pooled etc.))
-QC <- 'QC'
+QC <- 'pool'
 
+setwd(output)
 
 
 
@@ -80,49 +88,39 @@ QC <- 'QC'
 ###############################################
 # the sample metadata 
 # the sample metadata is required to have these column names:  sample_name, class, batch, injectionOrder
-metadata <- read.csv(file = path_to_metadata, header = TRUE, sep = ',')
+metadata <- read.csv(file = path_to_samplemetadata, header = TRUE, sep = '\t')
 
 #standartd intensity list retrieved from XCMS 
-intensities <- read.csv(file = path_to_feature_intensity_table, header = FALSE, sep = ',')
+intensities <- read.csv(file = path_to_Data_matrix_xcms, header = FALSE, sep = '\t')
 
 ####################
 # correcting format#
 ####################
 
-### add sample_name to intensities#
-intensities[1,1] <- 'sample_name'
-
 # switching rows and columns of metadata
 metadata1 <- as.data.frame(t(metadata))
 # add rowname variavle, sorting the dataframe by samplename
-metadata1 <- add_rownames(metadata1, var = "name")
+colnames(metadata1)<- metadata1[1,]
+metadata1 <- metadata1[,order((metadata1[1,]))]
 metadata1 <- metadata1[-1,]
-metadata2 <- metadata1[,-1]
-metadata2 <- metadata2[,order((metadata2[1,]))]
-rownames <- metadata1[,1]
-metadata2 <- cbind(names = rownames, metadata2)
-rm(metadata1)
-colnames(metadata2) <- metadata2[1,]
 
 #####################
 # intensities #
 ###################
 
-intensities1 <- intensities[,-1]
-rownames(intensities1) <- intensities[,1]
-intensities1 <- intensities1[,order((intensities1[1,]))]
-intensities1 <- cbind(names = row.names(intensities1),intensities1)
-intensities1[1,] <- gsub("\\..*","",intensities1[1,])
-colnames(intensities1) <- intensities1[1,]
+colnames(intensities) <- intensities[1,]
+intensities <- intensities[,order((intensities[1,]))]
+intensities <- intensities[-1,]
+rownames(intensities) <- intensities[,1]
+intensities <- intensities[,-1]
+
+
 ###############
 # combining#
 ###############\
 
-combined <- rbind(metadata2[2,], intensities1[-1,])
-combined <- rbind(intensities1[1,],combined)
-combined <- combined[-1,]
-rownames(combined) <- combined[,1]
-combined <- combined[,-1]
+combined <- rbind(metadata1[2,], intensities[-1,])
+
 
 ###########################
 # change all NA data in 0##
@@ -156,7 +154,7 @@ ordered_normalized_set <- normalized_set[order(row.names(normalized_set)), ]
 # ordering datasets #
 #####################
 meta_data <- read.csv('batchCorrect_import_metadata')
-new_normalized_set <- cbind(meta_data[,3:5], ordered_normalized_set);
+new_normalized_set <- cbind(meta_data[,2:4], ordered_normalized_set);
 write.csv(new_normalized_set, "new_normalized_set.csv")
 
 ################
@@ -175,23 +173,58 @@ rm(mSet)
 #############################
 mSet <- InitDataObjects("pktable", "utils", FALSE)
 mSet <- Read.BatchDataTB(mSet, "new_normalized_set.csv", "row")
-methods<- c("Combat", "WaveICA","EigenMS","QC_RLSC","ANCOVA","RUV_random","RUV_2","RUV_s","RUV_r","RUV_g","NOMIS","CCMN")
+methods<- c("Loess", "Combat", "WaveICA","EigenMS","QC_RLSC","ANCOVA","RUV_random","RUV_2","RUV_s","RUV_r","RUV_g","NOMIS","CCMN")
 counter <- 0
 items <- list()
 
 
 # try function becouse not all datasets accepts the other functions (to many arguments for the LOG2 function)
 for (i in 1:length(methods))  {
+  counter <- counter + 1
+  if (methods[i] == "Loess"){
+    eset <- reading(NA,
+                             files.ls = list(dataMatrix = file.path(path_to_Data_matrix_xcms),
+                                             sampleMetadata = file.path(path_to_samplemetadata),
+                                             variableMetadata = file.path(Path_to_variable_metadata)))
+    
+    
+    corrcted_set <- correcting(
+      eset,
+      reference.c = QC,
+      col_batch.c = batch,
+      col_injectionOrder.c = injectionOrder,
+      col_sampleType.c = class,
+      span.n = 1,
+      title.c = NA,
+      figure.c = c("none", "interactive", "Loess_correction.pdf")[3],
+      report.c = c("none", "interactive", "Loess_correction.pdf")[3]
+    )
+    corrcted_set <- inspecting(corrcted_set)
+    corrcted_set <- phenomis::transforming(corrcted_set, method.c = "log10")
+    phenomis::writing(corrcted_set, dir.c = "F:/avans/stage MM/Sherloktest_data_2/peakpick_output", prefix.c = 'loessALL',
+                      overwrite.l = TRUE)
+    #filter for only QC sets
+    corrcted_set <- corrcted_set[, Biobase::pData(corrcted_set)[, "sampleType"] == QC]
+    
+    
+    phenomis::writing(corrcted_set, dir.c = "F:/avans/stage MM/Sherloktest_data_2/peakpick_output", prefix.c = 'loessQC',
+                      overwrite.l = TRUE)
+    items[[counter]] <- 'loessQC_dataMatrix.tsv'
+    
+  }
+  else {
   try(mSet <- PerformBatchCorrection(mSetObj = mSet, imgName = methods[[i]], Method = methods[[i]]), silent = T)
   (info <- (mSet$dataSet$interbatch_dis))
-  counter <- counter + 1
+  
   safe_name <- paste0("MetaboAnalyst_batch_data.csv",'_',methods[[i]],'.csv')
   file.rename("MetaboAnalyst_batch_data.csv", safe_name)
   items[[counter]] <- safe_name
+  }
 }
 
-items[[(counter + 1 )]] <- "new_normalized_set.csv"
-items[[(counter + 2 )]] <- "BatchCorrect_import_data_1"
+
+items[[(counter + 1)]] <- "new_normalized_set.csv"
+
 if (counter == 0){
   print('NO batch correction worked')
 }
@@ -203,51 +236,72 @@ if (counter == 0){
 ###############################################
 
 means <- list()
-CLASS <- (toupper(class))
 for (i in 1:length(items)){
-  if (items[[i]] == 'new_normalized_set.csv'){
-    variance_dataframe <- read.csv(items[[i]], header = TRUE, sep = ',')
-    variance_dataframe <- variance_dataframe[grep(QC, variance_dataframe$class),]
+  items <- Filter(Negate(is.null), items)
+  print(items[[i]])
+  if (items[[i]] == "new_normalized_set.csv"){
+    variance_dataframe <- read.csv(paste0(output,'/','new_normalized_set.csv'), header = TRUE, sep = ',')
+    variance_dataframe <- variance_dataframe[grep(QC, variance_dataframe$sampleType),]
     variance_dataframe <- variance_dataframe[,-1:-4]
-    variance_dataframe <- sapply(variance_dataframe, var)
-    means[[i]] <- mean(variance_dataframe)
+    #variance_dataframe[is.na(variance_dataframe)] <- 0
+    means[[i]] <- mean(rowVars(variance_dataframe))
+
+    
   }
-  else if (items[[i]] == 'BatchCorrect_import_data_1') {
-    variance_dataframe <- read.csv('BatchCorrect_import_data_1', header = TRUE, sep = ',')
-    variance_dataframe <- as.data.frame(t(variance_dataframe))
-    colnames(variance_dataframe) <- variance_dataframe[1,]
-    variance_dataframe <- variance_dataframe[grep(QC, variance_dataframe$class),]
-    variance_dataframe <- variance_dataframe[,-1]
-    variance_dataframe <- sapply(variance_dataframe, var)
-    means[[i]] <- mean(variance_dataframe)
-  }
+ 
   
+  else if (as.character(items[[i]]) == 'loessQC_dataMatrix.tsv'){
+
+    variance_dataframe <- read.csv(paste0(output,'/',"loessQC_dataMatrix.tsv"), header = FALSE, sep = '\t')
+    variance_dataframe <- as.data.frame(t(variance_dataframe))
+    variance_dataframe <- variance_dataframe[,-1]
+    variance_dataframe <- variance_dataframe[-1,]
+    variance_dataframe <- na.exclude(variance_dataframe)
+    variance_dataframe <- sapply(variance_dataframe,  var)
+    means[[i]] <- mean(variance_dataframe)
+  }
   else {
     print(items[[i]])
-    variance_dataframe <- read.csv(items[[i]], header = TRUE, sep = ',')
-    variance_dataframe <- variance_dataframe[grep(QC, variance_dataframe$CLASS),]
+    variance_dataframe <- read.csv(paste0(output,'/',items[[4]]), header = TRUE, sep = ',')
+    variance_dataframe <- variance_dataframe[grep(QC, variance_dataframe$Dataset),]
     variance_dataframe <- variance_dataframe[,-1:-3]
-    variance_dataframe <- sapply(variance_dataframe, var)
+    class(variance_dataframe)
+    #variance_dataframe[is.na(variance_dataframe)] <- 0
+    variance_dataframe <- sapply(variance_dataframe,  var)
     means[[i]] <- mean(variance_dataframe)
   }
 }
 
-means <- do.call(rbind, Map(data.frame, mean=means, file=items))
-means <- means[order(means$mean),]
-means
+means1 <- do.call(rbind, Map(data.frame, mean=means, file=items))
+means <- means1[order(means1$mean),]
+print(means)
 #write down output of benchmarking
 write.csv(means, file = 'Benchmarking_batch_correction.csv')
 
 
-
 #selecting Best dataset
-best_batch_corrected <- read.csv(means[1,2])
-write.csv(best_batch_corrected,'Best_batchcorrected.csv')
+best <- means[1,2]
 
+if (sub('.*\\.', '', means[1,2]) == "tsv"){
+  try(means <- gsub('QC', 'ALL',means[1,2]))
+  best_batch_corrected <- (read.csv(means, sep = '\t'))
+  best_batch_corrected <- as.data.frame((best_batch_corrected))
+  rownames(best_batch_corrected) <- best_batch_corrected[,1]
+  best_batch_corrected <- best_batch_corrected[,-1]
+  
+  write.csv(best_batch_corrected,'Best_batchcorrected.csv')
+  
+  
+} else if ((sub('.*\\.', '', means[1,2]) == "csv") ) {
+  best_batch_corrected <- read.csv(means[2,2])
+  write.csv(best_batch_corrected,'Best_batchcorrected.csv')
+  best_batch_corrected <- as.data.frame((best_batch_corrected))
+  rownames(best_batch_corrected) <- best_batch_corrected[,1]
+  best_batch_corrected <- best_batch_corrected[,-1:-3]
+  write.csv(best_batch_corrected,'Best_batchcorrected.csv')
 
+}
 
-data_corrected_new <- best_batch_corrected[,-3]
-write.csv(data_corrected_new,file = "MetaboAnalyst_batch_data_stats.csv",row.names =  F)
 
 ##################################################
 # perform updated PCA with best batch corrections#
@@ -255,7 +309,7 @@ write.csv(data_corrected_new,file = "MetaboAnalyst_batch_data_stats.csv",row.nam
 
 rm(mSet)
 mSet <- InitDataObjects("pktable", "stat", FALSE)
-mSet <- Read.TextData(mSet, "MetaboAnalyst_batch_data_stats.csv", "row", "disc")
+mSet <- Read.TextData(mSet, "Best_batchcorrected.csv", "row", "disc")
 mSet <- SanityCheckData(mSet)
 mSet <- ReplaceMin(mSet);
 mSet <- FilterVariable(mSet, "iqr", "F", 25)
@@ -264,5 +318,7 @@ mSet <- Normalization(mSet, "NULL", "NULL", "NULL", ratio=FALSE, ratioNum=20) # 
 mSet <- PCA.Anal(mSet)
 mSet <- PlotPCAPairSummary(mSet, "pca_Best_corrected_pair_0_", "png", 72, width=NA, 5)
 mSet <- PlotPCAScree(mSet, "pca__Best_corrected_scree_0_", "png", 72, width=NA, 5)
-mSet <- PlotPCA2DScore(mSet, "pca_Best_corrected__score2d_0_", "png", 72, width=NA,  1,2,0.95,0,0)
+mSet <- PlotPCA2DScore(mSet, "pca_Best_corrected__score2d_0_", "png", 72, width=NA,  1,2,0.95,0,1)
+
+
 
