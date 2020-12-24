@@ -12,9 +12,11 @@
 ###############
 
 # path to data & metadata (tsv format)
-path <- "F:/avans/stage MM/test_data_sherlok/test_data/"
-output_folder <- 'F:/avans/stage MM/peakpicking 2/'
+path <- "F:/avans/stage MM/Sherloktest_data_2/"
+output_folder <- 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output'
 unique_name <- 'default'
+setwd(path)
+dir.create(output_folder, showWarnings = F)
 
 ################
 # Library's####
@@ -32,6 +34,9 @@ library(pheatmap)
 library(SummarizedExperiment)
 library(stats)
 library(CAMERA)
+library(tibble)
+library(dplyr)
+library(data.table)
 
 
 ####################
@@ -102,8 +107,8 @@ fill <- FillChromPeaksParam()
 ###########################################
 
 # importing the files from the folder into R. all !!!! all files must be .mzML and one .tsv <-= sample meta data
-data_files <- list.files(path = path, pattern = "*.mzML", full.names = TRUE, recursive = TRUE)
-Sample_metadata <- list.files(path = path, pattern = "*.tsv", full.names = TRUE, recursive = TRUE)            
+data_files <- list.files(path = path, pattern = "*XML", full.names = TRUE, recursive = TRUE)
+Sample_metadata <- list.files(path = path, pattern = "sampleMetadata.tsv", full.names = TRUE, recursive = TRUE)            
 
 # create an table of the meta data
 data_frame <- read.table(file = Sample_metadata, sep = '\t', header = TRUE)
@@ -142,41 +147,69 @@ xdata <- fillChromPeaks(xdata, param = fill)
 #############
 # annotation#
 #############
-xs <- as(xdata, "xcmsSet")
-an <- xsAnnotate(xs)
+#xs <- as(xdata, "xcmsSet")
+#an <- xsAnnotate(xs)
 
-anF <- groupFWHM(an)
-xsaC <- groupCorr(anF)
-xsaFI <- findIsotopes(xsaC)
-xsaFA <- findAdducts(xsaFI, polarity="positive")
+#anF <- groupFWHM(an)
+#xsaC <- groupCorr(anF)
+#xsaFI <- findIsotopes(xsaC)
+#xsaFA <- findAdducts(xsaFI, polarity="positive")
 
-peaklist <- getPeaklist(xsaFA)
-peaklist <- peaklist[with(peaklist, order(rt, mz)),]
+#peaklist <- getPeaklist(xsaFA)
+#peaklist <- peaklist[with(peaklist, order(rt, mz)),]
 
-peaklist1 <- select(peaklist, mz, rt, pcgroup, adduct, isotopes)
+#peaklist1 <- select(peaklist, mz, rt, pcgroup, adduct, isotopes)
 
-isolist <- getIsotopeCluster(xsaFA)
+#isolist <- getIsotopeCluster(xsaFA)
 
 
-safe_name <- paste0(output_folder,'peaklistGrouped',unique_name,'.txt')
-write.csv(peaklist1, safe_name)
+#safe_name <- paste0(output_folder,'peaklistGrouped',unique_name,'.txt')
+#write.csv(peaklist1, safe_name)
 ##############################
 #Quantifying output and data #
 ##############################
 res <- quantify(xdata, value = "into")
 #meta data samples
-safe_name <- paste0(output_folder,'sample_meta_data_csv_XCMS',unique_name,'.txt')
-write.csv(colData(res), safe_name)
+
+
+
+safe_name <- paste0(output_folder,'/','sample_meta_data_-XCMS_',unique_name,'-.tsv')
+sample_metadata1 <- as.data.frame(colData(res))
+rownames(sample_metadata1) <- sample_metadata1[,1]
+sample_metadata1 <- sample_metadata1[,-1]
+write.table(sample_metadata1, safe_name, sep = '\t')
 
 #feature list
-safe_name <- paste0(output_folder,'Featurelist_XCMS',unique_name,'.txt')
-write.csv(rowData(res),safe_name) 
+safe_name <- paste0(output_folder,'/','Variable_metaData_-XCMS_',unique_name,'-.tsv')
+feature_list<- as.data.frame(featureDefinitions(xdata))
+feature_list <- feature_list[ , !(names(feature_list) %in% 'peakidx')]
+
+write.table(feature_list,safe_name, sep = '\t') 
 
 
 
 #intensity of found features
 #head(assay(res))
-safe_name <- paste0(output_folder,'feature_intensity_XCMS',unique_name,'.txt')
-write.csv((featureValues(xdata, value = "into")), safe_name)
+safe_name <- paste0(output_folder,'/','Data_matrix-XCMS_',unique_name,'-.tsv')
+data_matrix <- featureValues(xdata, value = "into")
 
-head(featureSummary(xdata, group = xdata$class))
+d <- data_matrix
+features <- rownames(d)
+rownames(d) <- NULL
+data_matrix <- cbind(features,d)
+for ( col in 1:ncol(data_matrix)){
+  colnames(data_matrix)[col] <-  sub(".mzXML", "", colnames(data_matrix)[col])
+}
+
+rownames(data_matrix) <- data_matrix[,1]
+data_matrix <- data_matrix[,-1]
+
+
+write.table(data_matrix, safe_name, sep = '\t')
+
+
+
+
+
+
+
