@@ -173,14 +173,14 @@ res <- quantify(xdata, value = "into")
 
 
 
-safe_name <- paste0(output_folder,'/','sample_meta_data_-XCMS_',unique_name,'-.tsv')
+safe_name <- paste0(output_folder,'/','sample_meta_data_XCMS_',unique_name,'_.tsv')
 sample_metadata1 <- as.data.frame(colData(res))
 rownames(sample_metadata1) <- sample_metadata1[,1]
 sample_metadata1 <- sample_metadata1[,-1]
 write.table(sample_metadata1, safe_name, sep = '\t')
 
 #feature list
-safe_name <- paste0(output_folder,'/','Variable_metaData_-XCMS_',unique_name,'-.tsv')
+safe_name <- paste0(output_folder,'/','Variable_metaData_XCMS_',unique_name,'.tsv')
 feature_list<- as.data.frame(featureDefinitions(xdata))
 feature_list <- feature_list[ , !(names(feature_list) %in% 'peakidx')]
 
@@ -190,7 +190,7 @@ write.table(feature_list,safe_name, sep = '\t')
 
 #intensity of found features
 #head(assay(res))
-safe_name <- paste0(output_folder,'/','Data_matrix-XCMS_',unique_name,'-.tsv')
+safe_name <- paste0(output_folder,'/','Data_matrix_XCMS_',unique_name,'.tsv')
 data_matrix <- featureValues(xdata, value = "into")
 
 d <- data_matrix
@@ -206,6 +206,8 @@ data_matrix <- data_matrix[,-1]
 
 
 write.table(data_matrix, safe_name, sep = '\t')
+
+
 
 
 
