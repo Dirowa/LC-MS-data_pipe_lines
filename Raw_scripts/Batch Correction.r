@@ -255,7 +255,7 @@ for (i in 1:length(methods))  {
     phenomis::writing(corrcted_set, dir.c = output, prefix.c = 'loessALL',
                       overwrite.l = TRUE)
     #filter for only QC sets
-    corrcted_set <- corrcted_set[, Biobase::pData(corrcted_set)[, "sampleType"] == QC]
+    corrcted_set <- corrcted_set[, Biobase::pData(corrcted_set)[, "sampleType"] == "QC"]
     phenomis::writing(corrcted_set, dir.c = output, prefix.c = 'loessQC_BatchCorrected_data',
                       overwrite.l = TRUE)
     
@@ -267,7 +267,7 @@ for (i in 1:length(methods))  {
   rm(mSet)
   mSet <- InitDataObjects("pktable", "utils", FALSE)
   mSet <- Read.BatchDataTB(mSet, "new_normalized_set.csv", "row")
-  try(mSet <- PerformBatchCorrection(mSetObj = mSet, imgName = methods[[i]], Method = methods[[i]]), silent = T) 
+  try(mSet <- PerformBatchCorrection(mSetObj = mSet, imgName = methods[[i]], Method = methods[[i]]), silent = F) 
   #try(info <- (mSet$dataSet$interbatch_dis))
   safe_name <- paste0("BatchCorrected_data",'_',methods[[i]],'.csv')
   (file.rename("MetaboAnalyst_batch_data.csv", safe_name))
@@ -304,7 +304,7 @@ for (i in 1:length(items)){
     variance_dataframe <- variance_dataframe[grep('QC', variance_dataframe$sampleType),]
     variance_dataframe <- variance_dataframe[,-1:-4]
     #variance_dataframe[is.na(variance_dataframe)] <- 0
-    means[[i]] <- mean(rowVars(variance_dataframe))
+    means[[i]] <- mean(sapply(variance_dataframe,  var))
     rm(variance_dataframe)
 
   }
@@ -436,3 +436,4 @@ writeLines(line,paste0(output,'/',final_output_folder,'/data_matrix.tsv') )
 line <- readLines(paste0(output,'/',final_output_folder,'/variable_metadata.tsv'),)
 line[1] <- paste0('""\t',line[1])
 writeLines(line,paste0(output,'/',final_output_folder,'/variable_metadata.tsv') )
+
