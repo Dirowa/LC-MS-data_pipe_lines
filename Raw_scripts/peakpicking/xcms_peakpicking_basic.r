@@ -14,10 +14,18 @@
 # path to data & metadata (tsv format)
 path <- "F:/avans/stage MM/Sherloktest_data_2/"
 output_folder <- 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output'
+sample_metadata <-'sample_metadata.tsv'
 unique_name <- 'default'
 setwd(path)
-dir.create(output_folder, showWarnings = F)
 
+
+
+
+output_folder <- paste0(output_folder,'_','XCMS_',unique_name)
+
+
+dir.create(output_folder, showWarnings = F)
+plot_allignment <- TRUE
 ################
 # Library's####
 ##############
@@ -45,59 +53,61 @@ library(data.table)
 
 
 #peakpicking Centwave
-cwp <- CentWaveParam()
-#  ppm = 42.5,
-#  peakwidth = c(11, 57.2),
-#  snthresh = 10,
-#  prefilter = c(3, 100),
-#  mzCenterFun = "wMean",
-#  integrate = 1L,
-#  mzdiff = 0.0045,
-#  fitgauss = FALSE,
-#  noise = 5000,
-#  verboseColumns = FALSE,
-#  roiList = list(),
-#  firstBaselineCheck = TRUE,
-#  roiScales = numeric(),
-#  extendLengthMSW = FALSE
-#)
+cwp <- CentWaveParam(
+  ppm = 42.5,
+  peakwidth = c(11, 57.2),
+  snthresh = 10,
+  prefilter = c(3, 100),
+  mzCenterFun = "wMean",
+  integrate = 1L,
+  mzdiff = 0.0045,
+  fitgauss = FALSE,
+  noise = 5000,
+  verboseColumns = FALSE,
+  roiList = list(),
+  firstBaselineCheck = TRUE,
+  roiScales = numeric(),
+  extendLengthMSW = FALSE
+)
 
-bwdpd <- 0.25
-minFractiondpd <- 1
+bwdpd <- 30
+minFractiondpd <- 0.5
 minSamplesdpd <- 1
 binSizedpd <- 0.25
-
-mpp <- MergeNeighboringPeaksParam()
-#  expandRt = 4,
-#  expandMz = 0,
-#  ppm = 10,
-#  minProp = 0.75
-#)
-
-obi <- ObiwarpParam()
-#  binSize = 0.682,
-#  centerSample = 3,
-#  response = 1L,
-#  distFun = "cor",
-#  gapInit = 0.544,
-#  gapExtend = 2.4,
-#  factorDiag = 2,
-#  factorGap = 1,
-#  localAlignment = FALSE,
-#  initPenalty = 0,
-#  subset = integer(),
-#  subsetAdjust = c("average", "previous")
-#)
+maxFeaturespdp <- 2000
 
 
+mpp <- MergeNeighboringPeaksParam(
+  expandRt = 4,
+  expandMz = 0,
+  ppm = 10,
+  minProp = 0.75
+)
 
-fill <- FillChromPeaksParam()
-#  expandMz = 0,
-#  expandRt = 0,
-#  ppm = 0,
-#  fixedMz = 0,
-#  fixedRt = 0
-#)
+obi <- ObiwarpParam(
+  binSize = 0.682,
+  centerSample = 3,
+  response = 1L,
+  distFun = "cor",
+  gapInit = 0.544,
+  gapExtend = 2.4,
+  factorDiag = 2,
+  factorGap = 1,
+  localAlignment = FALSE,
+  initPenalty = 0,
+  subset = integer(),
+  subsetAdjust = c("average", "previous")
+)
+
+
+
+fill <- FillChromPeaksParam(
+  expandMz = 0,
+  expandRt = 0,
+  ppm = 0,
+  fixedMz = 0,
+  fixedRt = 0
+)
 
 
 
@@ -107,8 +117,8 @@ fill <- FillChromPeaksParam()
 ###########################################
 
 # importing the files from the folder into R. all !!!! all files must be .mzML and one .tsv <-= sample meta data
-data_files <- list.files(path = path, pattern = "*XML", full.names = TRUE, recursive = TRUE)
-Sample_metadata <- list.files(path = path, pattern = "sampleMetadata.tsv", full.names = TRUE, recursive = TRUE)            
+data_files <- list.files(path = path, pattern = "*mzXML", full.names = TRUE, recursive = TRUE)
+Sample_metadata <- list.files(path = path, pattern = "sample_metadata.tsv", full.names = TRUE, recursive = TRUE)            
 
 # create an table of the meta data
 data_frame <- read.table(file = Sample_metadata, sep = '\t', header = TRUE)
@@ -132,11 +142,29 @@ xdata <- findChromPeaks(raw_data, param = cwp)
 xdata <- refineChromPeaks(xdata, mpp)
 xdata <- adjustRtime(xdata, param = obi)
 
+if (plot_allignment == 'TRUE'){
+  
+  
+    png(filename = paste0(path,'RT_adjustment.png'),
+        width = 1840, height = 1840, units = "px", pointsize = 12,
+        bg = "white",  res = NA,
+    )
+
+  bpis_adj <- chromatogram(xdata, aggregationFun = "max", include = "none")
+  par(mfrow = c(2, 1), mar = c(4.5, 4.2, 1, 0.5))
+  plot(bpis_adj, col = group_colors[bpis_adj$sampleType])
+  ## Plot also the difference of adjusted to raw retention time.
+  plotAdjustedRtime(xdata, col = group_colors[xdata$sampleType])
+  
+  
+  dev.off()
+}
 pdp <- PeakDensityParam(sampleGroups = xdata$sampleType,
                         bwdpd,
                         minFractiondpd,
                         minSamplesdpd,
-                        binSizedpd)
+                        binSizedpd,
+                        maxFeaturespdp)
 
 
 xdata <- groupChromPeaks(xdata, param = pdp)
@@ -173,7 +201,7 @@ res <- quantify(xdata, value = "into")
 
 
 
-safe_name <- paste0(output_folder,'/','sample_meta_data_XCMS_',unique_name,'_.tsv')
+safe_name <- paste0(output_folder,'/','sample_meta_data_XCMS_',unique_name,'.tsv')
 sample_metadata1 <- as.data.frame(colData(res))
 rownames(sample_metadata1) <- sample_metadata1[,1]
 sample_metadata1 <- sample_metadata1[,-1]
@@ -206,8 +234,6 @@ data_matrix <- data_matrix[,-1]
 
 
 write.table(data_matrix, safe_name, sep = '\t')
-
-
 
 
 
