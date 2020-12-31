@@ -299,7 +299,6 @@ for (i in 1:length(methods))  {
       report.c = c("none", "interactive", "Loess_correction.pdf")[3]
     )
     #corrcted_set <- inspecting(corrcted_set)
-    corrcted_set <- phenomis::transforming(corrcted_set, method.c = "log10")
     phenomis::writing(corrcted_set, dir.c = final_output_folder, prefix.c = 'loessALL_BatchCorrected_data',
                       overwrite.l = TRUE)
     #filter for only QC sets
