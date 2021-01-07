@@ -80,10 +80,10 @@ injectionOrder <- 'injectionOrder'
 
 #of class (what is the pooled sample code ( QC, pooled etc.))
 QC <- 'pool'
-sample_qc_part_name <- 'QC'
 
 
-Filter_on_RSD <- TRUE
+
+Filter_on_RSD <- FALSE
 RSD_treshhold <- 25
 
 
@@ -112,7 +112,7 @@ metadata <- read.csv(file = path_to_samplemetadata, header = FALSE, sep = '\t')
 
 #standartd intensity list retrieved from XCMS 
 intensities <- read.csv(file = path_to_Data_matrix_xcms, header = FALSE, sep = '\t')
-
+variable_metadata_matrix <- read.csv(file = Path_to_variable_metadata, header = TRUE, sep = '\t', row.names = 1)
 
 
 ####################
@@ -201,7 +201,9 @@ new_normalized_set1 <- new_normalized_set1[,-1]
 new_normalized_set1$sampleType <- as.character(new_normalized_set1$sampleType)
 new_normalized_set1$sampleType[new_normalized_set1$sampleType == QC] <- "QC"
 
+
 write.csv(new_normalized_set1, "new_normalized_set.csv")
+
 
 
 
@@ -214,6 +216,11 @@ metadata2$sampleType[metadata2$sampleType == QC] <- "QC"
 
 row_itensities <- rownames(ordered_normalized_set1)
 Feature_table <- as.data.frame(read.csv(Path_to_variable_metadata, sep = '\t'))
+
+
+names(Feature_table)[names(Feature_table) == QC] <- 'QC'
+
+
 
 #### possible correcting for removed features#####
 
@@ -262,9 +269,9 @@ writeLines(line,loes_file_variableMetadata.tsv )
 # calculate PCA#
 ################
 mSet <- PCA.Anal(mSet)
-mSet <- PlotPCAPairSummary(mSet, "pca_pair_0_", "png", 72, width=NA, 5)
-mSet <- PlotPCAScree(mSet, "pca_scree_0_", "png", 72, width=NA, 5)
-mSet <- PlotPCA2DScore(mSet, "pca_score2d_0_", "png", 72, width=NA, 1,2,0.95,0,0)
+mSet <- PlotPCAPairSummary(mSet, "pca_pair_before_correction", "png", 72, width=NA, 5)
+mSet <- PlotPCAScree(mSet, "pca_scree_before_correction_", "png", 72, width=NA, 5)
+mSet <- PlotPCA2DScore(mSet, "pca_score2d_before_correction_", "png", 72, width=NA, 1,2,0.95,0,0)
 
 
 
@@ -287,6 +294,14 @@ for (i in 1:length(methods))  {
                                     sampleMetadata = loes_file_sampleMetadata.tsv,
                                     variableMetadata = loes_file_variableMetadata.tsv))
     
+    png(filename = paste0(final_output_folder,'/loes_batchcorrection.png'),
+        width = 960, height = 960, units = "px", pointsize = 12,
+        bg = "white",  res = NA,
+    )
+    
+    
+    
+    
     corrcted_set <- phenomis::correcting(
       eset,
       reference.c = "QC",
@@ -295,9 +310,13 @@ for (i in 1:length(methods))  {
       col_sampleType.c = class,
       span.n = 1,
       title.c = NA,
-      figure.c = c("none", "interactive", "Loess_correction.pdf")[3],
+      figure.c = c("none", "interactive", "Loess_correction.pdf")[2],
       report.c = c("none", "interactive", "Loess_correction.pdf")[3]
     )
+    
+    
+    dev.off()
+    
     #corrcted_set <- inspecting(corrcted_set)
     phenomis::writing(corrcted_set, dir.c = final_output_folder, prefix.c = 'loessALL_BatchCorrected_data',
                       overwrite.l = TRUE)
@@ -475,6 +494,8 @@ mSet <- Normalization(mSet, "NULL", "NULL", "NULL", ratio=FALSE, ratioNum=20) # 
 mSet <- PCA.Anal(mSet)
 mSet <- PlotPCAPairSummary(mSet, "pca_Best_corrected_pair_0_", "png", 72, width=NA, 5)
 mSet <- PlotPCAScree(mSet, "pca__Best_corrected_scree_0_", "png", 72, width=NA, 5)
+mSet <- PlotPCA2DScore(mSet, "pca_score2d_best_corrected_", "png", 72, width=NA, 5,2,reg = 0.95, show=1, grey.scale = 0)
+
 
 
 ##################################################
