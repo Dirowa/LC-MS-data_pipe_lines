@@ -29,6 +29,7 @@ folder_to_databases = 'F:/avans/stage MM/databases/'
 Variable_Metadata_path = 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/filterd/XCMS_default_batchcorrected_ttest_gender_filterd_variable_metadata.tsv'
 output_folder = "F:/avans/stage MM/Sherloktest_data_2/annotated/"
 ppm = 0.003
+limit_output_query = 2
 
 output_format = ".excel"
 
@@ -96,7 +97,7 @@ worksheet = workbook.add_worksheet()
 row = 0
 column = 0
 
-primal_header = ['Feature', 'inital_mz', 'Delta_mz', 'found_mz', 'fullformula', 'adduct', 'finalcharge', 'smiles', 'struct_id']
+primal_header = ['Feature', 'inital_mz', 'found_mz','Delta_mz', 'fullformula', 'adduct', 'finalcharge', 'smiles', 'struct_id']
 query_items = ['compoundname', 'description', 'baseformula', 'identifier', 'charge']
 for item in primal_header:
     worksheet.write(row, column, item)
@@ -119,27 +120,33 @@ for item in mz_values:
     Feature = item[0]
 
     # the Query in the extended database
-    query = 'SELECT extended.fullmz, extended.fullformula, extended.adduct, extended.finalcharge, structures.smiles, extended.struct_id FROM extended ' \
-                'INNER JOIN structures ON extended.struct_id = structures.struct_id ' \
-                'WHERE extended.fullmz >= ' + str(float(item[1]) - (ppm / 2)) + ' AND extended.fullmz <= ' + str(
-        float(item[1]) + (ppm / 2)) + ' LIMIT 5 ;'
+    query = 'SELECT extended.fullmz,' \
+            'abs(' + str(float(item[1])) + ' - extended.fullmz) AS DELTA_MZ,'\
+            ' extended.fullformula, extended.adduct, extended.finalcharge, structures.smiles, extended.struct_id FROM extended ' \
+            'INNER JOIN structures ON extended.struct_id = structures.struct_id ' \
+            'WHERE extended.fullmz >= ' + str(float(item[1]) - (ppm / 2)) + ' AND extended.fullmz <= ' + str(
+            float(item[1]) + (ppm / 2)) + ' ORDER BY DELTA_MZ ASC ' \
+            'LIMIT '+ str(limit_output_query) +';'
 
     # retrieve result in for loop becouse then it retrieve multiple results
     for hit in c.execute(query):
         # print(item)
-        column = 3
+        column = 2
         row += 1
         worksheet.write(row, 0, item[0])
         worksheet.write(row, 1, item[1])
-        worksheet.write(row, 2, max(float(item_MZ), float(hit[0])) - (min(float(item_MZ), float(hit[0]))))
+        #worksheet.write(row, 2, max(float(item_MZ), float(hit[0])) - (min(float(item_MZ), float(hit[0]))))
         smiles = hit[-2]
 
         for item_a in hit:
             worksheet.write(row, column, item_a)
             column += 1
 
+
+
+
         # column += 1
-        column = 9
+        #column = 9
         counter = 0
 
         for database in databases:
