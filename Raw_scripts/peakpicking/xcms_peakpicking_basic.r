@@ -19,7 +19,7 @@ unique_name <- 'default'
 setwd(path)
 
 
-
+data_file_extention <- "*.mzXML"
 
 output_folder <- paste0(output_folder,'_','XCMS_',unique_name)
 
@@ -29,7 +29,6 @@ plot_allignment <- TRUE
 ################
 # Library's####
 ##############
-library(BiocStyle)
 library(xcms)
 library(faahKO)
 library(pander)
@@ -117,8 +116,8 @@ fill <- FillChromPeaksParam(
 ###########################################
 
 # importing the files from the folder into R. all !!!! all files must be .mzML and one .tsv <-= sample meta data
-data_files <- list.files(path = path, pattern = "*mzXML", full.names = TRUE, recursive = TRUE)
-Sample_metadata <- list.files(path = path, pattern = "sample_metadata.tsv", full.names = TRUE, recursive = TRUE)            
+data_files <- list.files(path = path, pattern = data_file_extention, full.names = TRUE, recursive = FALSE)
+Sample_metadata <- list.files(path = path, pattern = "*.tsv", full.names = TRUE, recursive = FALSE)            
 
 # create an table of the meta data
 data_frame <- read.table(file = Sample_metadata, sep = '\t', header = TRUE)
@@ -145,7 +144,7 @@ xdata <- adjustRtime(xdata, param = obi)
 if (plot_allignment == 'TRUE'){
   
   
-    png(filename = paste0(path,'RT_adjustment.png'),
+    png(filename = paste0(path,'RT_adjustment.svg'),
         width = 1840, height = 1840, units = "px", pointsize = 12,
         bg = "white",  res = NA,
     )
@@ -175,24 +174,20 @@ xdata <- fillChromPeaks(xdata, param = fill)
 #############
 # annotation#
 #############
-#xs <- as(xdata, "xcmsSet")
-#an <- xsAnnotate(xs)
+xs <- as(xdata, "xcmsSet")
+an <- xsAnnotate(xs)
 
-#anF <- groupFWHM(an)
-#xsaC <- groupCorr(anF)
-#xsaFI <- findIsotopes(xsaC)
-#xsaFA <- findAdducts(xsaFI, polarity="positive")
+anF <- groupFWHM(an)
+xsaC <- groupCorr(anF)
+xsaFI <- findIsotopes(xsaC)
+xsaFA <- findAdducts(xsaFI, polarity="negative")
 
-#peaklist <- getPeaklist(xsaFA)
-#peaklist <- peaklist[with(peaklist, order(rt, mz)),]
+peaklist <- getPeaklist(xsaFA)
+peaklist <- peaklist[with(peaklist, order(rt, mz)),]
 
-#peaklist1 <- select(peaklist, mz, rt, pcgroup, adduct, isotopes)
-
-#isolist <- getIsotopeCluster(xsaFA)
+peaklist <- peaklist[, -grep("X", colnames(peaklist))]
 
 
-#safe_name <- paste0(output_folder,'peaklistGrouped',unique_name,'.txt')
-#write.csv(peaklist1, safe_name)
 ##############################
 #Quantifying output and data #
 ##############################
@@ -207,12 +202,24 @@ rownames(sample_metadata1) <- sample_metadata1[,1]
 sample_metadata1 <- sample_metadata1[,-1]
 write.table(sample_metadata1, safe_name, sep = '\t')
 
+
+
+line <- readLines(safe_name,)
+line[1] <- paste0('""\t',line[1])
+writeLines(line,safe_name,)
+
+
+
 #feature list
 safe_name <- paste0(output_folder,'/','Variable_metaData_XCMS_',unique_name,'.tsv')
 feature_list<- as.data.frame(featureDefinitions(xdata))
-feature_list <- feature_list[ , !(names(feature_list) %in% 'peakidx')]
+rownames(peaklist) <- rownames(feature_list)
 
-write.table(feature_list,safe_name, sep = '\t') 
+write.table(peaklist,safe_name, sep = '\t') 
+
+line <- readLines(safe_name,)
+line[1] <- paste0('""\t',line[1])
+writeLines(line,safe_name,)
 
 
 
@@ -226,7 +233,7 @@ features <- rownames(d)
 rownames(d) <- NULL
 data_matrix <- cbind(features,d)
 for ( col in 1:ncol(data_matrix)){
-  colnames(data_matrix)[col] <-  sub(".mzXML", "", colnames(data_matrix)[col])
+  colnames(data_matrix)[col] <-  sub(data_file_extention, "", colnames(data_matrix)[col])
 }
 
 rownames(data_matrix) <- data_matrix[,1]
@@ -235,6 +242,9 @@ data_matrix <- data_matrix[,-1]
 
 write.table(data_matrix, safe_name, sep = '\t')
 
+line <- readLines(safe_name,)
+line[1] <- paste0('""\t',line[1])
+writeLines(line,safe_name,)
 
 
 
