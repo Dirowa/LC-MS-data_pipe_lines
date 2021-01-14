@@ -1,211 +1,400 @@
-#####################
-#  filter the data#
-####################
-#install.packages("randomcoloR")
+#BiocManager::install("ropls")
+#BiocManager::install('MultiDataSet')
+#devtools::install_github("SciDoPhenIA/phenomis")
+#BiocManager::install("biosigner")
+
+########################################################
+# ote to self incoperate list of variables of interests#
+##########################################################
+
+library(phenomis)
+library(biosigner)
+library(ropls)
+library(dendextend)
+library(data.table)
 library(dplyr)
-library( randomcoloR)
-library(reshape2)
+library(stringr)
 
-Variable_metadata_path <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/variableMetadata.tsv"
-data_matrix_path <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/Best_batchcorrected.tsv_ttest_gender.tsv"
-sample_metadata_path <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/sample_meta_data_XCMS_default.tsv_batchcorrected.tsv_ttest_gender.tsv"
+###############################
+# variables #
+##########################
 
-outputfolder <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/filterd/"
-
-sampletype <- "sampleType"
-
-dir.create(outputfolder, showWarnings = T)
-
-minium_QC_sample_cutoff_ratio <- 0.1
-maximum_QC_sample_cutoff_ratio <- 2.0
-
-minium_QC_blank_cutoff_ratio <- 0.0
-maximum_QC_blank_cutoff_ratio <- 1.0
-
-sample_in_sampleType <- 'sample'
-blank_in_sampleType <- 'blank'
-####################
-# reading in data###
-####################
+input_folder <- 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction1'
+Corrected_data_matrix <- "Best_batchcorrected.tsv"
+sample_meta_data <- "sample_meta_data_XCMS_default.tsv_batchcorrected.tsv"
+variable_meta_data <- "Variable_metaData_XCMS_default.tsv_batchcorrected.tsv"
 
 
-variable_metadata <- read.table(Variable_metadata_path, sep = '\t', header = TRUE, row.names = 1)
-data_matrix <- read.table(data_matrix_path, sep = '\t', header = TRUE, row.names = 1)
-sample_metadata <- (read.table(sample_metadata_path, sep = '\t', header = TRUE, row.names = 1))
+#c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman",
+#"limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter"
+test <- "ttest"
+
+heat_map_statistics = c("pearson", "kendall", "spearman")[1]
+variables_of_interest <- c("age",'bmi', 'gender')
+correcting_data_set_according_variable <- NULL
+factor_of_interest <- 'gender'
+second_factor_of_interest <- 'age'
+
+P_value_treshhold <- 0.05
+max_features_output <- NA
+graph_title <- NA
+pre_fix_of_report <- ""
+
+# column name of sample type names
+sampleType <- "sampleType"
+#fill in the items to files in the sampleType or fill in NULL
+# items_to_filter <- c('blank','QC')
+items_to_filter <- c('blank', 'QC')
 
 
-#this is tmp and needs to be removed
-names(variable_metadata)[names(variable_metadata) == 'pool'] <- 'QC'
+cluster_groups_of_samples<- 6
+cluster_groups_of_features<- 6
+
+heat_map_statistics <- c("pearson", "kendall", "spearman")[1]
+heat_map_algorithm <- c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski",
+                        "1-cor", "1-abs(cor)")[7]
+
+
+
+##############################################
+
+output_folder  <- paste0(input_folder,'/',test,'_',factor_of_interest,'/')
+dir.create(output_folder, showWarnings = T)
+setwd(output_folder)
+
+numerical_factor_of_interest <- second_factor_of_interest
+
+# create output name#
+result <- paste0(test,'_',factor_of_interest)
+
+# remove file to resolve bug
+file.remove(paste0(output_folder,result,'.txt'))
+#retrieve best info
+path_Corrected_data_matrix <- paste0(input_folder,'/',Corrected_data_matrix)
+path_sample_meta_data <- paste0(input_folder,'/',sample_meta_data)
+path_variable_meta_data <- paste0(input_folder,'/',variable_meta_data)
 
 
 
 
-###########################
-#  ordering the dataframes#
-###########################
-data_matrix <- data_matrix[ , order(names(data_matrix))]
-sample_metadata <- sample_metadata[order(row.names(sample_metadata)), ]
+#############################################
+# changing datasets for better graph display#
+#############################################
+sample_metadata <- (read.table(path_sample_meta_data, sep = '\t', header = TRUE, row.names = 1))
+data_matrix <- (read.table(path_Corrected_data_matrix, sep = '\t', header = TRUE, row.names = 1))
 
 
-################################
-# filter based significant hits#
-################################
 
-signif_column_nr <- which( colnames(variable_metadata)==colnames(variable_metadata)[grepl('signif', colnames(variable_metadata))])
-variable_metadata <- variable_metadata[variable_metadata[,signif_column_nr] == 1, ] 
+factor <- sample_metadata[, factor_of_interest]
+sample_names <- rownames(sample_metadata)
+eset_names <- list()
+for (i in 1:length(factor)){
+  string <- paste0(sample_names[[i]],"-",factor[[i]])
+  eset_names[i] <- string
+  
+}
 
-filter_rowname <- rownames(variable_metadata)
-data_matrix <- data_matrix %>% filter(row.names(data_matrix) %in% filter_rowname)
 
-#######################################
-# creating a boxplot of found features#
-#######################################
-features_in_sample <- unique(sample_metadata[[sampletype]])
-features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
-palette <-  palette(rainbow((length(names(features_in_sample)))))
-png(filename = paste0(outputfolder,"Features count in each sample type before filtering.png"),
-    width = 960, height = 960, units = "px", pointsize = 12,
+colnames(data_matrix) <- eset_names
+rownames(sample_metadata) <- eset_names
+
+datamatrix_path <- paste0(output_folder,Corrected_data_matrix,'_tmp_',factor_of_interest,'.tsv')
+write.table(data_matrix, datamatrix_path, sep ='\t')
+
+sample_metadata_path <- paste0(output_folder,sample_meta_data,'_tmp_',factor_of_interest,'.tsv')
+write.table(sample_metadata, sample_metadata_path, sep ='\t')
+
+
+line <- readLines(datamatrix_path,)
+line[1] <- paste0('""\t',line[1])
+writeLines(line,datamatrix_path,)
+
+
+line <- readLines(sample_metadata_path,)
+line[1] <- paste0('""\t',line[1])
+writeLines(line,sample_metadata_path, )
+
+##################
+# reading in data#
+##################
+
+
+set <- phenomis::reading(NA,
+                         files.ls = list(dataMatrix = file.path(datamatrix_path),
+                                         sampleMetadata = file.path(sample_metadata_path),
+                                         variableMetadata = file.path(path_variable_meta_data)))
+
+
+png(filename = paste0(output_folder,result,'overview.png'),
+    width = 960, height = 960, units = "px", pointsize = 20,
     bg = "white",  res = NA,
 )
-barplot(t(as.matrix(features_in_sample)),beside=TRUE,
-        main = "Features count in each sample type before filtering",
-        col = c(palette)
-)
-legend("topleft",
-       c(names(features_in_sample)),
-       fill = c(palette)
-)
 
+
+
+sacurine.eset <- phenomis::inspecting(set,
+                                      pool_as_pool1.l = FALSE,
+                                      pool_cv.n = 0.3,
+                                      span.n = 1,
+                                      sample_intensity.c = c("median", "mean")[1],
+                                      title.c = "Inital Overview",
+                                      plot_dims.l = TRUE,
+                                      figure.c = c("none", "interactive", "myfile.pdf")[2],
+                                      
+                                      report.c = c("none", "interactive", "myfile.txt")[3])
 
 dev.off()
 
-################################################
-# filtering based on intensity of blank samples#
-################################################
-# get names of blank samples
-blank_names <- rownames(sample_metadata)[which(sample_metadata == 'blank', arr.ind=T)[, "col"]]
-data <- (data_matrix) + log10(2)
+#######################
+# Filtering of samples#
+#######################
 
-idx <- match(blank_names, names(data))
-idx <- sort(c(idx-1, idx))
-blanks <- data[,idx] 
-blanks <- rowMeans(blanks)
+
+if (!is.null(items_to_filter)){
+  for (i in 1:length(items_to_filter)){
+  set <- set[, Biobase::pData(set)[, sampleType] != items_to_filter[i]]
   
-
-for (i in 1:length(rownames(data))){
-  data[i,][data[i,] <= blanks[i]] <- NA   
-}
-  
-data_matrix <- data
-
-# editing the variable metadata
-features_in_sample <- unique(sample_metadata[[sampletype]])
-for (i in 1:length(rownames(data_matrix))){
-  for (ii in 1:length(features_in_sample)){
-    data <- data_matrix[i,][rownames(sample_metadata[sample_metadata[sampletype] == features_in_sample[ii],])]
-
-    data <- sum(!is.na(data))
-    variable_metadata[i, ][features_in_sample[ii]] <- data
-    
   }
+  png(filename = paste0(output_folder,result,'overview_after_sample_filtering.png'),
+      width = 960, height = 960, units = "px", pointsize = 20,
+      bg = "white",  res = NA)
+  set <- sacurine.eset <- phenomis::inspecting(set,
+                                               pool_as_pool1.l = FALSE,
+                                               pool_cv.n = 0.3,
+                                               span.n = 1,
+                                               sample_intensity.c = c("median", "mean")[1],
+                                               title.c = "Inital Overview",
+                                               plot_dims.l = TRUE,
+                                               figure.c = c("none", "interactive", "myfile.pdf")[2],
+                                               
+                                               report.c = c("none", "interactive", "myfile.txt")[3])
+  dev.off()
+  }
+
+###################################################
+######### Filtering according data#################
+##################################################
+
+set <- set[Biobase::fData(set)[, "pool_CV"] <= 0.3, ]
+set <- phenomis::inspecting(set)
+
+
+####################################################
+#correcting dataset according variable information##
+####################################################
+if(!(is.null(correcting_data_set_according_variable))){
+  Biobase::exprs(set) <- sweep(Biobase::exprs(set),
+                                         2,
+                                         Biobase::pData(set)[, correcting_data_set_according_variable],
+                                         "/")
+  set <- phenomis::inspecting(set)
+}
+
+#####################################################
+######### Filtering according data statistics########
+#####################################################
+
+set <- set[, Biobase::pData(set)[, "hotel_pval"] >= 0.001 &
+                                 Biobase::pData(set)[, "miss_pval"] >= 0.001 &
+                                 Biobase::pData(set)[, "deci_pval"] >= 0.001]
+
+phenomis::inspecting(set)
+
+
+######################
+# Univariate Testing #
+######################
+
+png(filename = paste0(output_folder,result,'signif_chart.png'),
+    width = 960, height = 960, units = "px", pointsize = 12,
+    bg = "white",  res = NA,
+)
+
+
+univariate_set <- phenomis::hypotesting(
+  set,
+                                        test.c = test,
+                                        factor_of_interest,
+                                        adjust_thresh.n = P_value_treshhold,
+                                        signif_maxprint.i = max_features_output,
+                                        title.c = 'Significant levels of univariate testing',
+                                        prefix.c = pre_fix_of_report,
+                                        adjust.c = "none",
+                                        report.c = paste0(result,'.txt'),
+                                        figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2])
+
+
+
+
+dev.off()
+
+
+################################################
+##################### PCA ######################
+################################################
+
+png(filename = paste0(output_folder,result,'_Global_PCA.png'),
+    width = 960, height = 960, units = "px", pointsize = 20,
+    bg = "white",  res = NA,
+)
+sacPca <- ropls::opls(univariate_set, info.txt = 'interactive',
+                      y = NULL,
+                      predI = NA,
+                      orthoI = 0,
+                      algoC = c("default", "nipals", "svd")[1],
+                      crossvalI = 1,
+                      log10L = FALSE,
+                      permI = 7,
+                      scaleC = c("none", "center", "pareto", "standard")[4],
+                      subset = NULL,
+                      plotSubC = 'Variance between Principal Components',
+                      fig.pdfC = c("none", "interactive", "myfile.pdf")[2],
+                      info.txtC = c("none", "interactive", "myfile.txt")[2],
+                      printL = TRUE,
+                      plotL = TRUE,
+                      .sinkC = NULL,)
+
+dev.off()
+
+#update variables_of_interest
+
+variables_of_interest <- variables_of_interest[variables_of_interest != factor_of_interest]
+
+
+for (i in 1:length(variables_of_interest)){
+  print(i)
+  png(filename = paste0(output_folder,result,'_',variables_of_interest[i],'.png'),
+      width = 960, height = 960, units = "px", pointsize = 20,
+      bg = "white",  res = NA,
+  )
+  
+  ropls::plot(sacPca,
+              parAsColFcVn = Biobase::pData(univariate_set)[, variables_of_interest[i]],
+              typeVc = "x-score",
+              
+              figure.c = paste0(result,'.pdf'),
+              plotSubC = variables_of_interest[i])
+  
+  
+  
+  dev.off()
 }
 
 
 
 
 
-######################################################
-# filtering on prevelance QC/sample hits in features##
-######################################################
-features_in_sample <- unique(sample_metadata[[sampletype]])
-features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
-
-
-features_in_sample1 <- features_in_sample %>% select('QC', sample_in_sampleType)
-features_in_sample1$ratio <- (features_in_sample1[['QC']] / features_in_sample1[[sample_in_sampleType]])
-features_to_delete <- rownames(features_in_sample1[features_in_sample1[,"ratio"] <= minium_QC_sample_cutoff_ratio, ])
-features_to_delete <- append(features_to_delete,rownames(features_in_sample1[features_in_sample1[,"ratio"] >= maximum_QC_sample_cutoff_ratio, ]))
-
-variable_metadata <- variable_metadata[-features_to_delete,]
-
-variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
-data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
 
 
 
-######################################################
-# filtering on prevelance QC/blank hits in features##
-######################################################
-features_in_sample <- features_in_sample %>% select(blank_in_sampleType, 'QC')
-features_in_sample$ratio <- (features_in_sample[[blank_in_sampleType]] / features_in_sample[['QC']])
-features_to_delete <- rownames(features_in_sample[features_in_sample[,"ratio"] <= minium_QC_blank_cutoff_ratio, ])
-features_to_delete <- append(features_to_delete,rownames(features_in_sample[features_in_sample[,"ratio"] >= maximum_QC_blank_cutoff_ratio, ]))
-
-variable_metadata <- variable_metadata[-features_to_delete,]
-
-variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
-data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
+########################
+##### heatmap ##########
+########################
 
 
 
-
-#######################################
-# creating a boxplot of found features#
-#######################################
-features_in_sample <- unique(sample_metadata[[sampletype]])
-features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
-palette <-  palette(rainbow((length(names(features_in_sample)))))
-png(filename = paste0(outputfolder,"Features count in each sample type after filtering.png"),
-    width = 960, height = 960, units = "px", pointsize = 12,
+png(filename = paste0(output_folder,result,'_heatmap.png'),
+    width = 1840, height = 1840, units = "px", pointsize = 20,
     bg = "white",  res = NA,
 )
-barplot(t(as.matrix(features_in_sample)),beside=TRUE,
-        main = "Features count in each sample type after filtering",
-        col = c(palette)
+
+sacurine.eset <- ropls::getEset(sacPca)
+sacurine.eset <- phenomis::clustering(sacurine.eset, correl.c = heat_map_statistics,
+                                      cex.vn = c(1,1),
+                                      clusters.vi = c(cluster_groups_of_samples, cluster_groups_of_features),
+                                      dissym.c = heat_map_algorithm ,
+                                      agglo.c = c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty",
+                                                  "median", "centroid")[2],
+                                      title.c = paste0('Clustering of Features and sampels ',heat_map_statistics))
+
+
+
+
+dev.off()
+
+###########################################
+########### Supervised modeling############
+########### (O)PLS(-DA) modeling###########
+###########################################
+png(filename = paste0(output_folder,result,'_Testing.png'),
+    width = 1840, height = 1840, units = "px", pointsize = 20,
+    bg = "white",  res = NA,
 )
-legend("topleft",
-       c(names(features_in_sample)),
-       fill = c(palette)
-)
+
+sacPlsda <- ropls::opls(sacurine.eset, predI = 5, factor_of_interest, seedI = 123)
+sacurine.eset <- ropls::getEset(sacPlsda)
+
+
 
 
 dev.off()
 
 
+##############################################################
+# rewriting the output for filtering#
+##############################################################
+######## removing tmp files ############
+file.remove(sample_metadata_path)
+file.remove(datamatrix_path)
 
-####################################
-# CREATE DATAFRAMES IN RIGHT FORMAT#
-####################################
+phenomis::writing(sacurine.eset, dir.c = getwd(),overwrite.l = TRUE)
 
-#retrieving output name #
 
-tmp <- as.list(strsplit(gsub(".tsv*","",sample_metadata_path), '/')[[1]])
-tmp <- tmp[(length(tmp))]
-tmp <- paste( unlist(tmp), collapse='')
-tmp <- as.list(strsplit(tmp,"_")[[1]])
+if (!is.null(items_to_filter)){
+  library(plyr)
+  metadata <- read.table(path_sample_meta_data, sep = '\t', header = TRUE, row.names = 1)
+  metadata1 <- read.table(paste0(output_folder,"/sampleMetadata.tsv"), sep = '\t', header = TRUE, row.names = 1)
+  colnames1 <- setdiff(colnames(metadata1), colnames(metadata))
+  
+  metadata <- metadata[  metadata$sampleType %in% items_to_filter, ]
+  
+  
+  for (i in 1:length(colnames1)){
+    metadata[[colnames1[i]]] <- NA
+  }
+  
+  
+  metadata2 <- rbind(metadata1, metadata)
+  write.table(metadata2, paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'), sep = '\t')
+  file.remove(paste0(output_folder,"/sampleMetadata.tsv"))
+  
+  sample_meta_data1 <- read.table(paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'), header = TRUE, row.names = 1)
+  rownames(sample_meta_data1) <- gsub('(.*)-\\w+', '\\1', rownames(sample_meta_data1))
+  write.table(sample_meta_data1, paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'), sep = '\t')
+  
+  
+  file.copy(path_Corrected_data_matrix,paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv') )
+  file.copy(paste0(output_folder,"/dataMatrix.tsv"), paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
+  file.remove(paste0(output_folder,"/dataMatrix.tsv"))
+  
+  
+  
+  
+} else if(is.null(items_to_filter)) {
+  file.rename(paste0(output_folder,"/sampleMetadata.tsv"), paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
+  
+  
+  sample_meta_data1 <- read.table(paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'), header = TRUE, row.names = 1)
+  rownames(sample_meta_data1) <- gsub('(.*)-\\w+', '\\1', rownames(sample_meta_data1))
+  write.table(sample_meta_data1, paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'), sep = '\t')
+  
+  file.rename(paste0(output_folder,"/dataMatrix.tsv"), paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
+  
+  
+}
 
-tmp<- tmp[4:(length(tmp))]
-tmp <- paste( unlist(tmp), collapse='_')
+file.rename(paste0(output_folder,"/variableMetadata.tsv"), paste0(output_folder,variable_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
 
-path <- paste0(outputfolder,tmp,'_filterd_data_matrix.tsv')
-write.table(data_matrix,path , sep ='\t')
-line <- readLines(path)
+
+
+####################
+# correcting output#
+####################
+
+line <- readLines(paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
 line[1] <- paste0('""\t',line[1])
-writeLines(line,path)
+writeLines(line,paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
 
-
-path <- paste0(outputfolder,tmp,'_filterd_sample_metadata.tsv')
-write.table(sample_metadata, path, sep ='\t')
-line <- readLines(path)
+line <- readLines(paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
 line[1] <- paste0('""\t',line[1])
-writeLines(line,path)
-
-
-path <- paste0(outputfolder,tmp,'_filterd_variable_metadata.tsv')
-write.table(variable_metadata, path, sep ='\t')
-line <- readLines(path)
-line[1] <- paste0('"Feature_ID"\t',line[1])
-writeLines(line,path)
-
-
-
+writeLines(line,paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
