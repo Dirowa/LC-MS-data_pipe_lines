@@ -29,6 +29,17 @@ sudo add-apt-repository ppa:webupd8team/java
 sudo add-apt-repository ppa:c2d4u.team/c2d4u4.0+
  sudo apt install gcc
 sudo apt-get install libpcre2-dev - y
+apt-get install -y libgit2-dev
+apt install -y lsb-release
+sudo apt-get install g++
+sudo apt-get install libudunits2-dev
+apt install gfortran gfortran-doc
+sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+sudo apt-get install libgeos-dev
+sudo apt-get install libproj-dev
+sudo apt-get install gdal-bin 
+sudo apt-get install proj-bin 
+
 
 
 install.packages("devtools")
