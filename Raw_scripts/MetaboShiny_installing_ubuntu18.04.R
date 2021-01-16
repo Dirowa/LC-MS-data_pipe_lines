@@ -25,6 +25,12 @@ apt-get install libsqlite-dev
 apt-get install libmariadbclient-dev
 apt-get install libmariadbd-dev -f
  apt-get install libmariadb-client-lgpl-dev
+sudo add-apt-repository ppa:webupd8team/java
+sudo add-apt-repository ppa:c2d4u.team/c2d4u4.0+
+sudo apt-get install libopenblas-dev
+
+
+
 
 install.packages('orca')
 BiocManager::install('orca')
