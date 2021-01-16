@@ -3,6 +3,29 @@
 ############################
 
 
+# RUN ON TERMINAL#
+## run on terminal sudo apt install -y libudunits2-0 libudunits2-dev
+# sudo apt install libgdal-dev
+#system(' sudo apt-get install libglu1-mesa-dev')
+# sudo apt-get install -y libxml2-dev libcurl4-openssl-dev libssl-dev
+#sudo apt-get install -y librsvg2-dev
+sudo apt-get install -y default-jre
+sudo apt-get install -y default-jdk
+sudo R CMD javareconf
+
+sudo add-apt-repository ppa:marutter/c2d4u3.5
+sudo apt-get update
+sudo apt-get install r-cran-rjava
+sudo apt-get install libbz2-dev libpcre3-dev
+sudo apt-get install liblzma-dev zlib1g-dev
+sudo apt install libomp-dev -y
+R CMD javareconf -e
+sudo apt install openjdk-8-jre-headless
+apt-get install libsqlite-dev
+apt-get install libmariadbclient-dev
+apt-get install libmariadbd-dev -f
+ apt-get install libmariadb-client-lgpl-dev
+
 install.packages('orca')
 BiocManager::install('orca')
 install.packages("tidyverse", repo = 'https://mac.R-project.org')
@@ -12,11 +35,9 @@ BiocManager::install("org.Hs.eg.db")
 install.packages("pacman")
 install.packages("rJava")
 library("rJava")
-#system(' sudo apt-get install libglu1-mesa-dev')
+
 #
-sudo apt-get install -y librsvg2-dev
-# sudo apt-get install -y libxml2-dev libcurl4-openssl-dev libssl-dev
-#sudo apt-get install -y librsvg2-dev
+
 install.packages('rgl')
 
 
@@ -68,8 +89,7 @@ install.packages("plotly")
 devtools::install_github("xia-lab/MetaboAnalystR", build = TRUE, build_vignettes = FALSE)
 library(MetaboAnalystR)
 
-## run on terminal sudo apt install -y libudunits2-0 libudunits2-dev
-# sudo apt install libgdal-dev
+
 devtools::install_github("gaospecial/ggVennDiagram")
 
 
