@@ -5,10 +5,10 @@
 
 # RUN ON TERMINAL#
 ## run on terminal sudo apt install -y libudunits2-0 libudunits2-dev
-# sudo apt install libgdal-dev
-#system(' sudo apt-get install libglu1-mesa-dev')
-# sudo apt-get install -y libxml2-dev libcurl4-openssl-dev libssl-dev
-#sudo apt-get install -y librsvg2-dev
+ sudo apt install libgdal-dev
+ sudo apt-get install libglu1-mesa-dev
+ sudo apt-get install -y libxml2-dev libcurl4-openssl-dev libssl-dev
+sudo apt-get install -y librsvg2-dev
 sudo apt-get install -y default-jre
 sudo apt-get install -y default-jdk
 sudo R CMD javareconf
@@ -27,28 +27,44 @@ apt-get install libmariadbd-dev -f
  apt-get install libmariadb-client-lgpl-dev
 sudo add-apt-repository ppa:webupd8team/java
 sudo add-apt-repository ppa:c2d4u.team/c2d4u4.0+
-sudo apt-get install libopenblas-dev
+ sudo apt install gcc
+sudo apt-get install libpcre2-dev - y
 
 
+install.packages("devtools")
+install.packages("BiocManager")
+install.packages("rJava")
 
 
 install.packages('orca')
 BiocManager::install('orca')
 install.packages("tidyverse", repo = 'https://mac.R-project.org')
-install.packages("devtools")
-install.packages("BiocManager")
+
 BiocManager::install("org.Hs.eg.db")
 install.packages("pacman")
-install.packages("rJava")
-library("rJava")
-
-#
-
+BiocManager::install(' mutoss')
+BiocManager::install(' metap')
+BiocManager::install(' units')
+BiocManager::install(' sf')
+BiocManager::install('globaltest')
+BiocManager::install('Rgraphviz')
+BiocManager::install('SSPA')
+BiocManager::install('KEGGgraph')
+BiocManager::install('siggenes')
+BiocManager::install('GlobalAncova')
+BiocManager::install("mzR")
+BiocManager::install("ctc")
+BiocManager::install(gdata)
+install.packages("gdata")
+install.packages("glasso")
+install.packages("huge")
+install.packages("ppcor")
+install.packages("plotly")
 install.packages('rgl')
 
+devtools::install_github("gaospecial/ggVennDiagram")
 
 library(devtools)
-devtools::install_github("joannawolthuis/MetaboShiny", force = TRUE)
 BiocManager::install('rsvg')
 install.packages('librsvg2-dev')
 BiocManager::install("ChemmineR")
@@ -66,37 +82,20 @@ Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
 
 BiocManager::install("MetaboAnalystR")
 devtools::install_github("xia-lab/MetaboAnalystR")
-BiocManager::install(' mutoss')
-BiocManager::install(' metap')
-BiocManager::install(' units')
-BiocManager::install(' sf')
+
 
 
  #‘GlobalAncova’, ‘Rgraphviz’, ‘SSPA’, ‘KEGGgraph’, ‘siggenes’
 
-BiocManager::install('globaltest')
-BiocManager::install('Rgraphviz')
-BiocManager::install('SSPA')
-BiocManager::install('KEGGgraph')
-BiocManager::install('siggenes')
-BiocManager::install('GlobalAncova')
+
 
 install.packages("pacman")
 pacman::p_load(c("impute", "pcaMethods", "globaltest", "GlobalAncova", "Rgraphviz", "preprocessCore", "genefilter", "SSPA", "sva", "limma", "KEGGgraph", "siggenes","BiocParallel", "MSnbase", "multtest","RBGL","edgeR","fgsea"))
-install.packages("BiocManager")
-BiocManager::install("mzR")
-BiocManager::install("ctc")
-BiocManager::install(gdata)
-install.packages("gdata")
-install.packages("glasso")
-install.packages("huge")
-install.packages("ppcor")
-install.packages("plotly")
+
 devtools::install_github("xia-lab/MetaboAnalystR", build = TRUE, build_vignettes = FALSE)
 library(MetaboAnalystR)
 
 
-devtools::install_github("gaospecial/ggVennDiagram")
 
 
 
