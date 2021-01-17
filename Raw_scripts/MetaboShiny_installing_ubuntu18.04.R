@@ -39,6 +39,12 @@ sudo apt-get install libgeos-dev
 sudo apt-get install libproj-dev
 sudo apt-get install gdal-bin 
 sudo apt-get install proj-bin 
+sudo apt-get install libignition-math4-dev -y
+ sudo apt-get install libmysqlclient-dev -f
+sudo apt-get install default-libmysqlclient-dev
+sudo apt-get install default-libmysqlclient-dev
+sudo apt-get install libgdal-dev -f
+
 
 
 
@@ -106,6 +112,7 @@ pacman::p_load(c("impute", "pcaMethods", "globaltest", "GlobalAncova", "Rgraphvi
 devtools::install_github("xia-lab/MetaboAnalystR", build = TRUE, build_vignettes = FALSE)
 library(MetaboAnalystR)
 
+devtools::install_github("xia-lab/MetaboAnalystR")
 
 
 
