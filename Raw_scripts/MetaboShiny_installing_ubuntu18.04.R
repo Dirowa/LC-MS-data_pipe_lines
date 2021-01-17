@@ -71,6 +71,12 @@ BiocManager::install('siggenes')
 BiocManager::install('GlobalAncova')
 BiocManager::install("mzR")
 BiocManager::install("ctc")
+BiocManager::install('fgsea')
+BiocManager::install('glasso')
+BiocManager::install('huge')
+BiocManager::install('RBGL')
+BiocManager::install('crmn')
+
 BiocManager::install(gdata)
 install.packages("gdata")
 install.packages("glasso")
@@ -97,7 +103,6 @@ devtools::install_github("rwehrens/BatchCorrMetabolomics")
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
 
 
-BiocManager::install("MetaboAnalystR")
 devtools::install_github("xia-lab/MetaboAnalystR")
 
 
@@ -115,6 +120,20 @@ library(MetaboAnalystR)
 devtools::install_github("xia-lab/MetaboAnalystR")
 
 
+ BiocManager::install('multtest')
+ BiocManager::install('MSnbase')
+ BiocManager::install('siggenes')
+ BiocManager::install('KEGGgraph')
+
+
+ BiocManager::install('SSPA')
+ BiocManager::install('preprocessCore')
+ BiocManager::install('Rgraphviz')
+ BiocManager::install('GlobalAncova')
+
+
+ BiocManager::install('globaltest')
+ BiocManager::install('pcaMethods')
 
 
 #######################
