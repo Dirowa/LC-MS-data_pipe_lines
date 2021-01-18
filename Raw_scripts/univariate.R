@@ -19,10 +19,10 @@ library(stringr)
 # variables #
 ##########################
 
-input_folder <- 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction1'
-Corrected_data_matrix <- "Best_batchcorrected.tsv"
-sample_meta_data <- "sample_meta_data_XCMS_default.tsv_batchcorrected.tsv"
-variable_meta_data <- "Variable_metaData_XCMS_default.tsv_batchcorrected.tsv"
+input_folder <- 'F:/avans/stage MM/Real_sherLOCK_data/_XCMS_default/batch_correction1/filterd'
+Corrected_data_matrix <- "XCMS_default (3)_batchcorrected_filterd_data_matrix.tsv"
+sample_meta_data <- "XCMS_default (3)_batchcorrected_filterd_sample_metadata.tsv"
+variable_meta_data <- "XCMS_default (3)_batchcorrected_filterd_variable_metadata.tsv"
 
 
 #c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman",
@@ -30,10 +30,10 @@ variable_meta_data <- "Variable_metaData_XCMS_default.tsv_batchcorrected.tsv"
 test <- "ttest"
 
 heat_map_statistics = c("pearson", "kendall", "spearman")[1]
-variables_of_interest <- c("age",'bmi', 'gender')
+variables_of_interest <- c("sex",'age.group', 'smoking', 'drinking.habit')
 correcting_data_set_according_variable <- NULL
-factor_of_interest <- 'gender'
-second_factor_of_interest <- 'age'
+factor_of_interest <- 'sex'
+second_factor_of_interest <- 'age.group'
 
 P_value_treshhold <- 0.05
 max_features_output <- NA
@@ -41,10 +41,10 @@ graph_title <- NA
 pre_fix_of_report <- ""
 
 # column name of sample type names
-sampleType <- "sampleType"
+sampleType <- "SampleType"
 #fill in the items to files in the sampleType or fill in NULL
 # items_to_filter <- c('blank','QC')
-items_to_filter <- c('blank', 'QC')
+items_to_filter <- c('Blank', 'QC')
 
 
 cluster_groups_of_samples<- 6
@@ -68,7 +68,7 @@ numerical_factor_of_interest <- second_factor_of_interest
 result <- paste0(test,'_',factor_of_interest)
 
 # remove file to resolve bug
-file.remove(paste0(output_folder,result,'.txt'))
+try(file.remove(paste0(output_folder,result,'.txt')))
 #retrieve best info
 path_Corrected_data_matrix <- paste0(input_folder,'/',Corrected_data_matrix)
 path_sample_meta_data <- paste0(input_folder,'/',sample_meta_data)
@@ -82,6 +82,26 @@ path_variable_meta_data <- paste0(input_folder,'/',variable_meta_data)
 #############################################
 sample_metadata <- (read.table(path_sample_meta_data, sep = '\t', header = TRUE, row.names = 1))
 data_matrix <- (read.table(path_Corrected_data_matrix, sep = '\t', header = TRUE, row.names = 1))
+
+
+#######################################################################
+# edit datamatrix 1/5 of lowest feature in dataset will be replace NA#
+#######################################################################
+
+for (i in 1:length(rownames(data_matrix))){
+  data1 <- data_matrix[i,]
+  data <- data1[!is.na(data1)]
+  data <- min(data)-log10(5)
+  data <- data1[is.na(data1)] <- data
+  data_matrix[i,] <- data1
+}
+
+
+
+  
+  
+  
+  
 
 
 
@@ -334,8 +354,7 @@ dev.off()
 # rewriting the output for filtering#
 ##############################################################
 ######## removing tmp files ############
-file.remove(sample_metadata_path)
-file.remove(datamatrix_path)
+
 
 phenomis::writing(sacurine.eset, dir.c = getwd(),overwrite.l = TRUE)
 
@@ -380,21 +399,23 @@ if (!is.null(items_to_filter)){
   
   file.rename(paste0(output_folder,"/dataMatrix.tsv"), paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
   
+  ####################
+  # correcting output#
+  ####################
+  
+  line <- readLines(paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
+  line[1] <- paste0('""\t',line[1])
+  writeLines(line,paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
+  
+  line <- readLines(paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
+  line[1] <- paste0('""\t',line[1])
+  writeLines(line,paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
   
 }
 
 file.rename(paste0(output_folder,"/variableMetadata.tsv"), paste0(output_folder,variable_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
 
 
+file.remove(paste0(output_folder,"dataMatrix.tsv"))
+file.remove(paste0(output_folder,"sampleMetadata.tsv"))
 
-####################
-# correcting output#
-####################
-
-line <- readLines(paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
-line[1] <- paste0('""\t',line[1])
-writeLines(line,paste0(output_folder,sample_meta_data,'_',test,"_",factor_of_interest,'.tsv'))
-
-line <- readLines(paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
-line[1] <- paste0('""\t',line[1])
-writeLines(line,paste0(output_folder,Corrected_data_matrix,'_',test,"_",factor_of_interest,'.tsv'))
