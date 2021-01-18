@@ -14,16 +14,17 @@
 # path to data & metadata (tsv format)
 path <- "F:/avans/stage MM/Sherloktest_data_2/"
 output_folder <- 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output'
-sample_metadata <-'sample_metadata.tsv'
 unique_name <- 'default'
 setwd(path)
 
+sample_name <- 'sample_name'
 
+sample_metadata <-'sample_metadata.tsv'
 data_file_extention <- "*.mzXML"
 
+
+
 output_folder <- paste0(output_folder,'_','XCMS_',unique_name)
-
-
 dir.create(output_folder, showWarnings = F)
 plot_allignment <- TRUE
 ################
@@ -123,7 +124,7 @@ Sample_metadata <- list.files(path = path, pattern = "*.tsv", full.names = TRUE,
 data_frame <- read.table(file = Sample_metadata, sep = '\t', header = TRUE)
 
 # order the dataframe by name (so all pathfiles will be going to the right row)
-data_frame <- data_frame[order(data_frame$sample_name),]
+data_frame <- data_frame[order(data_frame[sample_name]),]
 
 # convert the table to an dataframe
 data_frame <- as.data.frame.matrix(data_frame) 
