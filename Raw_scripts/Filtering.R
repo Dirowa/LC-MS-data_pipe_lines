@@ -6,15 +6,24 @@ library(dplyr)
 library( randomcoloR)
 library(reshape2)
 
-Variable_metadata_path <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/variableMetadata.tsv"
-data_matrix_path <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/Best_batchcorrected.tsv_ttest_gender.tsv"
-sample_metadata_path <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/sample_meta_data_XCMS_default.tsv_batchcorrected.tsv_ttest_gender.tsv"
 
-outputfolder <- "F:/avans/stage MM/Sherloktest_data_2/peakpick_output_XCMS_default/batch_correction/ttest_gender/filterd/"
+folder <- 'F:/avans/stage MM/Real_sherLOCK_data/_XCMS_default/batch_correction1/'
+variable_metadata <- "Variable_metaData_XCMS_default.tsv_batchcorrected.tsv"
+data_matrix <- "Best_batchcorrected.tsv"
+sample_metadata <-"sample_meta_data_XCMS_default (3).tsv_batchcorrected.tsv"
 
-sampletype <- "sampleType"
 
-dir.create(outputfolder, showWarnings = T)
+outputfolder_name <- "filterd"
+sampletype <- "SampleType"
+sample_in_sampleType <- 'sample'
+blank_in_sampleType <- 'Blank'
+QC_in_sample_type <-"Pooled"
+
+filter_significant_hits = FALSE
+filter_QC_SAMPLE_RATIO = FALSE
+FILTER_blank_SAMPLE_RATIO = FALSE
+
+min_amoutn_of_sample_hit <- 1
 
 minium_QC_sample_cutoff_ratio <- 0.1
 maximum_QC_sample_cutoff_ratio <- 2.0
@@ -22,8 +31,21 @@ maximum_QC_sample_cutoff_ratio <- 2.0
 minium_QC_blank_cutoff_ratio <- 0.0
 maximum_QC_blank_cutoff_ratio <- 1.0
 
-sample_in_sampleType <- 'sample'
-blank_in_sampleType <- 'blank'
+
+
+#####################
+# creating the paths#
+#####################
+outputfolder <- (paste0(folder,outputfolder_name,'/'))
+dir.create(outputfolder, showWarnings = T)
+
+
+
+
+Variable_metadata_path <- paste0(folder, variable_metadata)
+data_matrix_path <- paste0(folder, data_matrix)
+sample_metadata_path <- paste0(folder, sample_metadata)
+
 ####################
 # reading in data###
 ####################
@@ -33,9 +55,16 @@ variable_metadata <- read.table(Variable_metadata_path, sep = '\t', header = TRU
 data_matrix <- read.table(data_matrix_path, sep = '\t', header = TRUE, row.names = 1)
 sample_metadata <- (read.table(sample_metadata_path, sep = '\t', header = TRUE, row.names = 1))
 
+##################
+# debugging######
+#################
+
+
+colnames(data_matrix) <- rownames(sample_metadata)
+
 
 #this is tmp and needs to be removed
-names(variable_metadata)[names(variable_metadata) == 'pool'] <- 'QC'
+names(variable_metadata)[names(variable_metadata) == QC_in_sample_type] <- 'QC'
 
 
 
@@ -45,17 +74,6 @@ names(variable_metadata)[names(variable_metadata) == 'pool'] <- 'QC'
 ###########################
 data_matrix <- data_matrix[ , order(names(data_matrix))]
 sample_metadata <- sample_metadata[order(row.names(sample_metadata)), ]
-
-
-################################
-# filter based significant hits#
-################################
-
-signif_column_nr <- which( colnames(variable_metadata)==colnames(variable_metadata)[grepl('signif', colnames(variable_metadata))])
-variable_metadata <- variable_metadata[variable_metadata[,signif_column_nr] == 1, ] 
-
-filter_rowname <- rownames(variable_metadata)
-data_matrix <- data_matrix %>% filter(row.names(data_matrix) %in% filter_rowname)
 
 #######################################
 # creating a boxplot of found features#
@@ -78,74 +96,55 @@ legend("topleft",
 
 
 dev.off()
+################################
+# filter based significant hits#
+################################
 
-################################################
-# filtering based on intensity of blank samples#
-################################################
-# get names of blank samples
-blank_names <- rownames(sample_metadata)[which(sample_metadata == 'blank', arr.ind=T)[, "col"]]
-data <- (data_matrix) + log10(2)
-
-idx <- match(blank_names, names(data))
-idx <- sort(c(idx-1, idx))
-blanks <- data[,idx] 
-blanks <- rowMeans(blanks)
-  
-
-for (i in 1:length(rownames(data))){
-  data[i,][data[i,] <= blanks[i]] <- NA   
-}
-  
-data_matrix <- data
-
-# editing the variable metadata
-features_in_sample <- unique(sample_metadata[[sampletype]])
-for (i in 1:length(rownames(data_matrix))){
-  for (ii in 1:length(features_in_sample)){
-    data <- data_matrix[i,][rownames(sample_metadata[sample_metadata[sampletype] == features_in_sample[ii],])]
-
-    data <- sum(!is.na(data))
-    variable_metadata[i, ][features_in_sample[ii]] <- data
+ if (isTRUE(filter_significant_hits)){
+   signif_column_nr <- which( colnames(variable_metadata)==colnames(variable_metadata)[grepl('signif', colnames(variable_metadata))])
+   variable_metadata <- variable_metadata[variable_metadata[,signif_column_nr] == 1, ] 
     
-  }
+   filter_rowname <- rownames(variable_metadata)
+   data_matrix <- data_matrix %>% filter(row.names(data_matrix) %in% filter_rowname)
 }
-
-
-
 
 
 ######################################################
 # filtering on prevelance QC/sample hits in features##
 ######################################################
-features_in_sample <- unique(sample_metadata[[sampletype]])
-features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
 
 
-features_in_sample1 <- features_in_sample %>% select('QC', sample_in_sampleType)
-features_in_sample1$ratio <- (features_in_sample1[['QC']] / features_in_sample1[[sample_in_sampleType]])
-features_to_delete <- rownames(features_in_sample1[features_in_sample1[,"ratio"] <= minium_QC_sample_cutoff_ratio, ])
-features_to_delete <- append(features_to_delete,rownames(features_in_sample1[features_in_sample1[,"ratio"] >= maximum_QC_sample_cutoff_ratio, ]))
-
-variable_metadata <- variable_metadata[-features_to_delete,]
-
-variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
-data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
-
-
+if (isTRUE(filter_QC_SAMPLE_RATIO)){
+  features_in_sample <- unique(sample_metadata[[sampletype]])
+  features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
+  
+  
+  features_in_sample1 <- features_in_sample %>% select('QC', sample_in_sampleType)
+  features_in_sample1$ratio <- (features_in_sample1[['QC']] / features_in_sample1[[sample_in_sampleType]])
+  features_to_delete <- rownames(features_in_sample1[features_in_sample1[,"ratio"] <= minium_QC_sample_cutoff_ratio, ])
+  features_to_delete <- append(features_to_delete,rownames(features_in_sample1[features_in_sample1[,"ratio"] >= maximum_QC_sample_cutoff_ratio, ]))
+  
+  variable_metadata <- variable_metadata[-features_to_delete,]
+  
+  variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
+  data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
+  
+}
 
 ######################################################
 # filtering on prevelance QC/blank hits in features##
 ######################################################
-features_in_sample <- features_in_sample %>% select(blank_in_sampleType, 'QC')
-features_in_sample$ratio <- (features_in_sample[[blank_in_sampleType]] / features_in_sample[['QC']])
-features_to_delete <- rownames(features_in_sample[features_in_sample[,"ratio"] <= minium_QC_blank_cutoff_ratio, ])
-features_to_delete <- append(features_to_delete,rownames(features_in_sample[features_in_sample[,"ratio"] >= maximum_QC_blank_cutoff_ratio, ]))
-
-variable_metadata <- variable_metadata[-features_to_delete,]
-
-variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
-data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
-
+if(isTRUE(FILTER_blank_SAMPLE_RATIO)){
+  features_in_sample <- features_in_sample %>% select(blank_in_sampleType, 'QC')
+  features_in_sample$ratio <- (features_in_sample[[blank_in_sampleType]] / features_in_sample[['QC']])
+  features_to_delete <- rownames(features_in_sample[features_in_sample[,"ratio"] <= minium_QC_blank_cutoff_ratio, ])
+  features_to_delete <- append(features_to_delete,rownames(features_in_sample[features_in_sample[,"ratio"] >= maximum_QC_blank_cutoff_ratio, ]))
+  
+  variable_metadata <- variable_metadata[-features_to_delete,]
+  
+  variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
+  data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
+}
 
 
 
@@ -206,5 +205,4 @@ write.table(variable_metadata, path, sep ='\t')
 line <- readLines(path)
 line[1] <- paste0('"Feature_ID"\t',line[1])
 writeLines(line,path)
-
 
