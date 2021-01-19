@@ -73,13 +73,8 @@ variable_metadata <- "Variable_metaData_XCMS_default.tsv"
 
 final_output_folder <- "batch_correction"
 # columns names in dataframe of metadata
-sample_name <- 'Sample_name'
-class <- 'sampleType'
-batch <- 'batch'
-injectionOrder <- 'injectionOrder'
 
-#of class (what is the pooled sample code ( QC, pooled etc.))
-QC <- 'pool'
+
 
 
 
@@ -87,7 +82,8 @@ Filter_on_RSD <- TRUE
 RSD_treshhold <- 25
 
 
-
+pixelsize1 <- 20
+pixelsize2 <- 12
 # setting up some directories#
 final_output_folder <- paste0(input_folder,'/',final_output_folder)
 dir.create(final_output_folder, showWarnings = F)
@@ -97,8 +93,11 @@ variable_metadata_naam <- variable_metadata
 
 
 
-
-
+############# settins which should not be edited ################
+sample_name <- 'Sample_name'
+sample_type <- 'sample_type'
+batch <- 'batch'
+injectionOrder <- 'Injection_order'
 #################################################################
 # IMPORT DATA SET#
 ###############################################
@@ -107,16 +106,11 @@ path_to_Data_matrix_xcms <- paste0(input_folder,'/',Data_matrix_xcms )
 path_to_samplemetadata <- paste0(input_folder,'/',samplemetadata )
 Path_to_variable_metadata <- paste0(input_folder,'/',variable_metadata )
 # the sample metadata 
-# the sample metadata is required to have these column names:  sample_name, class, batch, injectionOrder
+# the sample metadata is required to have these column names:  sample_name, sample_type, batch, injectionOrder
 metadata <- read.csv(file = path_to_samplemetadata, header = TRUE, sep = '\t', row.names = 1)
 #standartd intensity list retrieved from XCMS 
 intensities <- read.csv(file = path_to_Data_matrix_xcms, header = TRUE, sep = '\t', row.names = 1)
 variable_metadata_matrix <- read.csv(file = Path_to_variable_metadata, header = TRUE, sep = '\t', row.names = 1)
-
-
-
-# edit the sampletupe name of pooled to QC
-metadata[class][metadata[class] == QC] <- "QC"
 
 
 #######################################
@@ -129,7 +123,7 @@ metadata1 <- as.data.frame(t(metadata))
 metadata1<- metadata1[ , order(names(metadata1))]
 intensities<- intensities[ , order(names(intensities))]
 
-Index <- which(rownames(metadata1) == class) 
+Index <- which(rownames(metadata1) == sample_type) 
 sample_types  <- metadata1[Index, ]  ## subsets dataframe
 
 colnames(sample_types) <- colnames(intensities)
@@ -158,7 +152,7 @@ ordered_normalized_set1 <- normalized_set[order(row.names(normalized_set)), ]
 # creating dataset for batch correction#
 ########################################
 
-Samplemetadata1 <- select(metadata, class, batch, injectionOrder)
+Samplemetadata1 <- select(metadata, sample_type, batch, injectionOrder)
 new_normalised_set <- cbind(Samplemetadata1,ordered_normalized_set1)
 
 
@@ -226,7 +220,7 @@ set <- phenomis::reading(NA,
 
 
 png(filename = paste0(final_output_folder,'/inspecting dataset.png'),
-    width = 960, height = 960, units = "px", pointsize = 20,
+    width = 960, height = 960, units = "px", pointsize = pixelsize1,
     bg = "white",  res = NA
 )
 
@@ -278,7 +272,7 @@ for (i in 1:length(methods))  {
                                     variableMetadata = loes_file_variableMetadata.tsv))
     
     png(filename = paste0(final_output_folder,'/loes_batchcorrection.png'),
-        width = 960, height = 960, units = "px", pointsize = 12,
+        width = 960, height = 960, units = "px", pointsize = pixelsize2,
         bg = "white",  res = NA,
     )
     
@@ -290,9 +284,9 @@ for (i in 1:length(methods))  {
       reference.c = "QC",
       col_batch.c = batch,
       col_injectionOrder.c = injectionOrder,
-      col_sampleType.c = class,
+      col_sampleType.c = sample_type,
       span.n = 1,
-      title.c = NA,
+      title.c = 'Loess Batch Correction',
       figure.c = c("none", "interactive", "Loess_correction.pdf")[2],
       report.c = c("none", "interactive", "Loess_correction.pdf")[3]
     )
@@ -355,7 +349,7 @@ for (i in 1:length(items)){
     print(mean(sapply(variance_dataframe1,  var)))
     means2[[i]] <- mean(sapply(variance_dataframe1,  var))
     
-    variance_dataframe <- variance_dataframe[grep('QC', variance_dataframe[[class]]),]
+    variance_dataframe <- variance_dataframe[grep('QC', variance_dataframe[[sample_type]]),]
     variance_dataframe <- variance_dataframe[,-1:-4]
     #variance_dataframe[is.na(variance_dataframe)] <- 0
     print(mean(sapply(variance_dataframe,  var)))
@@ -435,6 +429,7 @@ for (i in 1:length(items)){
 ## ordering output
 means1 <- do.call(rbind, Map(data.frame,mean_var_total_log10=means2, mean_var_QC_log10=means, file=items))
 means <- means1[order(means1$mean_var_QC_log10),]
+means <- transform(means, Ratio_VAR_QC_log = mean_var_total_log10 / mean_var_QC_log10)
 print(means)
 #write down output of benchmarking
 write.csv(means, file = 'Benchmarking_batch_correction.csv')
