@@ -12,15 +12,15 @@
 ###############
 
 # path to data & metadata (tsv format)
-path <- "F:/avans/stage MM/Sherloktest_data_2/"
-output_folder <- 'F:/avans/stage MM/Sherloktest_data_2/peakpick_output'
+path <- "F:/avans/stage MM/test_data_sherlok/test_data"
+output_folder <- 'F:/avans/stage MM/xcms_pipeline/'
 unique_name <- 'default'
 setwd(path)
 
 sample_name <- 'sample_name'
 
-sample_metadata <-'sample_metadata.tsv'
-data_file_extention <- "*.mzXML"
+sample_metadata <-'sampleMetadata_completed.tsv'
+data_file_extention <- "*.mzML"
 
 
 
@@ -62,7 +62,7 @@ cwp <- CentWaveParam(
   integrate = 1L,
   mzdiff = 0.0045,
   fitgauss = FALSE,
-  noise = 5000,
+  noise = 0,
   verboseColumns = FALSE,
   roiList = list(),
   firstBaselineCheck = TRUE,
@@ -145,11 +145,11 @@ xdata <- adjustRtime(xdata, param = obi)
 if (plot_allignment == 'TRUE'){
   
   
-    png(filename = paste0(path,'RT_adjustment.svg'),
-        width = 1840, height = 1840, units = "px", pointsize = 12,
-        bg = "white",  res = NA,
-    )
-
+  png(filename = paste0(path,'RT_adjustment.svg'),
+      width = 1840, height = 1840, units = "px", pointsize = 12,
+      bg = "white",  res = NA,
+  )
+  
   bpis_adj <- chromatogram(xdata, aggregationFun = "max", include = "none")
   par(mfrow = c(2, 1), mar = c(4.5, 4.2, 1, 0.5))
   plot(bpis_adj, col = group_colors[bpis_adj$sampleType])
