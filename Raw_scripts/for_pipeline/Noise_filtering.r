@@ -17,16 +17,12 @@ data_matrix <- "Data_matrix_XCMS_default.tsv_batchcorrected.tsv"
 sample_metadata <-"sample_meta_data_XCMS_default.tsv_batchcorrected.tsv"
 
 min_amoutn_of_sample_hit <- 1
-sampletype <- "sampleType"
-sample_in_sampleType <- 'sample'
-blank_in_sampleType <- 'blank'
-QC_in_sample_type <-"pool"
 
 #####################
 # creating the paths#
 #####################
 outputfolder <- (paste0(folder,outputfolder_name,'/'))
-dir.create(outputfolder, showWarnings = T)
+try(dir.create(outputfolder, showWarnings = T))
 
 
 
@@ -48,8 +44,6 @@ sample_metadata <- (read.table(sample_metadata_path, sep = '\t', header = TRUE, 
 colnames(data_matrix) <- rownames(sample_metadata)
 
 
-#this is tmp and needs to be removed
-names(variable_metadata)[names(variable_metadata) == QC_in_sample_type] <- 'QC'
 
 
 ###########################
@@ -67,7 +61,7 @@ sample_metadata <- sample_metadata[order(row.names(sample_metadata)), ]
 # get names of blank samples
 
 
-blank_names <- rownames(sample_metadata[sample_metadata[,sampletype] == blank_in_sampleType,])
+blank_names <- rownames(sample_metadata[sample_metadata$sample_type == 'blank',])
 
 data <- (data_matrix) + log10(2)
 idx <- c()
@@ -85,10 +79,10 @@ rm(data)
 
 
   # editing the variable metadata
-features_in_sample <- unique(sample_metadata[[sampletype]])
+features_in_sample <- unique(sample_metadata$sample_type)
 for (i in 1:length(rownames(data_matrix))){
   for (ii in 1:length(features_in_sample)){
-    data <- data_matrix[i,][rownames(sample_metadata[sample_metadata[sampletype] == features_in_sample[ii],])]
+    data <- data_matrix[i,][rownames(sample_metadata[sample_metadata$sample_type == features_in_sample[ii],])]
     
     data <- sum(!is.na(data))
     variable_metadata[i, ][features_in_sample[ii]] <- data
@@ -98,12 +92,12 @@ for (i in 1:length(rownames(data_matrix))){
   
   
 # filter on amount of hits #
-features_in_sample <- unique(sample_metadata[[sampletype]])
+features_in_sample <- unique(sample_metadata$sample_type)
 features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
-features_in_sample1 <- features_in_sample %>% select(sample_in_sampleType)
+features_in_sample1 <- features_in_sample %>% select('sample')
 features_in_sample1 <- as.data.frame(features_in_sample1)
 
-features_to_delete <- rownames(subset(features_in_sample1,features_in_sample1[sample_in_sampleType] < min_amoutn_of_sample_hit ))
+features_to_delete <- rownames(subset(features_in_sample1,features_in_sample1['sample'] < min_amoutn_of_sample_hit ))
   
   
 variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
