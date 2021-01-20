@@ -1,0 +1,5 @@
+######## Global_settings #########
+path to variable metadata =   F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction/Noise_filterd/ttest_gender/filterd/noice_reduced_sample_metadata_ttest_gender_filterd_variable_metadata.tsv
+output location =   F:/avans/stage MM/Sherloktest_data_2/annotated/
+Search range =   0.003
+Limit output from same mass =   2
