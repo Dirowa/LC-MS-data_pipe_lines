@@ -34,6 +34,7 @@ polarity1 <- c('negative','positive')[!@#$%^&13&^%$#@!]
 
 
 data_file_extention <- paste0("*.",data_file_extention)
+dir.create(output_folder, showWarnings = F)
 output_folder <- paste0(output_folder,'_','XCMS_',unique_name)
 dir.create(output_folder, showWarnings = F)
 ################
@@ -129,7 +130,7 @@ fill <- FillChromPeaksParam(
 
 # importing the files from the folder into R. all !!!! all files must be .mzML and one .tsv <-= sample meta data
 data_files <- list.files(path = path, pattern = data_file_extention, full.names = TRUE, recursive = FALSE)
-Sample_metadata <- list.files(path = path, pattern = "*.tsv", full.names = TRUE, recursive = FALSE)            
+Sample_metadata <- list.files(path = path, pattern = sample_metadata, full.names = TRUE, recursive = FALSE)            
 # create an table of the meta data
 data_frame <- read.table(file = Sample_metadata, sep = '\t', header = TRUE)
 # order the dataframe by name (so all pathfiles will be going to the right row)
