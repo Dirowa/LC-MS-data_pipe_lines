@@ -1,0 +1,54 @@
+######## Global_settings #########
+Unique_name =   Default
+path_to_data_containing folders =   F:/avans/stage MM/Sherloktest_data_2/
+output_folders =   F:/avans/stage MM/Sherloktest_data_2/
+sample name column =   sample_name
+sample type column =   sampleType
+QC  in sample type =   pool
+blank  in sample type =   blank
+sample  in sample type =   sample
+injection order column name =   injectionOrder
+batch number column name =   batch
+sample_metadata_file_name =   sample_metadata.tsv
+data_file_extention =   mzXML
+Polarity choose between [1-2] 1-negative and 2-postive =   1
+######## PEAK PICKING PARAMS #########
+ppm =  25
+peakwidth =  20,50
+snthresh =  10
+mzCenterFun choise [1-4]. 1-wmean, 2-mean, 3-apex, 4-wmeanApex3 =  1
+integrate =  1L
+mzdiff =  -0.001
+fitgauss =  FALSE
+noise =  0
+verboseColumns =  FALSE
+firstBaselineCheck =  TRUE
+extendLengthMSW =  FALSE
+######## Refine found Peaks #########
+expandRt =  2
+expandMz =  0
+ppm =  10
+minProp =  0.75
+######## Peak grouping #########
+bw =  30
+minFraction =  0.5
+minSamples =  1
+binSize =  0.25
+maxFeatures =  1000
+######## Retention_time_correction #########
+binSize =  1
+centerSample =  3
+response =  1L
+distFun =  2
+gapInit =  0.5
+gapExtend =  2.5
+factorDiag =  2
+factorGap =  1
+localAlignment =  FALSE
+initPenalty =  0
+######## Retention_time_correction #########
+expandMz =  0
+expandRt =  0
+ppm =  0
+fixedMz =  0
+fixedRt =  0
