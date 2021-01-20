@@ -2,6 +2,7 @@ import subprocess
 import os
 from os import path
 
+Rscript = "C:/Program Files/R/R-4.0.3/bin/Rscript.exe"
 
 current_location = os.getcwd()
 current_location = current_location.replace('\\', '/')
@@ -72,8 +73,6 @@ def iniatie_check(current_location):
         setting.write('script_settings_location = ' + tmp + "\n")
         tmp = current_location + '/default_settings'
         setting.write('default_settings_location = ' + tmp + "\n")
-        setting.write('Rscript.exe_path =  \n')
-
         setting.close()
 
     ########## generating Default settings #############
@@ -90,16 +89,22 @@ def iniatie_check(current_location):
         setting.write('Unique_name =  Default \n')
         setting.write('path_to_data_containing folders =  <EDIT ME PLEASE> \n')
         setting.write('output_folders =  <EDIT ME PLEASE> \n')
-        setting.write('sample_metadata_file_name =  <EDIT ME PLEASE> \n')
-        setting.write('sample_name_column =  <EDIT ME PLEASE> \n')
+        setting.write('sample name column =  sample_name \n')
+        setting.write('sample type column =  sample_type \n')
+        setting.write('QC  in sample type =  QC \n')
+        setting.write('blank  in sample type =  blank \n')
+        setting.write('sample  in sample type =  sample \n')
+        setting.write('injection order column name =  injectionOrder \n')
+        setting.write('batch number column name =  batch \n')
+        setting.write('sample_metadata_file_name =  sample_metadata.tsv \n')
         setting.write('data_file_extention =  mzML \n')
-        setting.write('plot_allignment =  FALSE \n')
+        setting.write('Polarity, choose between [1-2] 1-negative and 2-postive =  1 \n')
 
         setting.write('######## PEAK PICKING PARAMS #########\n')
         setting.write('ppm = 25 \n')
         setting.write('peakwidth = 20,50 \n')
         setting.write('snthresh = 10 \n')
-        setting.write('mzCenterFun = WMean \n')
+        setting.write('mzCenterFun choise [1-4]. 1-wmean, 2-mean, 3-apex, 4-wmeanApex3 = 1 \n')
         setting.write('integrate = 1L \n')
         setting.write('mzdiff = -0.001 \n')
         setting.write('fitgauss   = FALSE \n')
@@ -119,15 +124,14 @@ def iniatie_check(current_location):
         setting.write('minFraction = 0.5 \n')
         setting.write('minSamples  = 1 \n')
         setting.write('binSize = 0.25 \n')
-        setting.write('maxFeatures = 50 \n')
+        setting.write('maxFeatures = 1000 \n')
 
         setting.write('######## Retention_time_correction #########\n')
         setting.write('binSize  = 1 \n')
         setting.write('centerSample  = 3 \n')
         setting.write('response   = 1L \n')
-        setting.write('distFun  = cor_opt \n')
+        setting.write('distFun choose [1-5] 1-cor 2-cor_opt 3-cov 4-prd 5-euc = 2 \n')
         setting.write('gapInit  = 0.5 \n')
-        setting.write('binSize = 1 \n')
         setting.write('gapExtend = 2.5 \n')
         setting.write('factorDiag = 2 \n')
         setting.write('factorGap   = 1 \n')
@@ -184,7 +188,7 @@ def default_parameters_or_given(paths, item):
                 Unique = (input("unique name to remember by: "))
 
             default_setting =  paths[4] + '/' + item
-            script_settigns = paths[3] + '/' + Unique
+            script_settigns = paths[3] + '/' + Unique +'.txt'
 
             tmp_file = open(script_settigns, 'w+')
             with open(default_setting)as f:
@@ -227,9 +231,11 @@ def R_script_editor_from_setting_list(path_to_settings, paths,script):
     with(open(path_to_settings, 'r')) as f:
         for line in f:
             if "#" not in line:
+                print(line)
                 line = ((line.split('='))[1]).rstrip().strip()
                 settings.append(line)
 
+    print(settings)
     #print(settings)
     R = paths[1] + '/' + script
     R_tmp = R +'.TMP.R'
@@ -316,7 +322,7 @@ while loop:  ## While loop which will keep going until loop = False
                 R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
                 print(R_temp)
                 print('Peakpicking iniatiated')
-                subprocess.check_call([paths[5], R_temp], shell=False)
+                subprocess.check_call([Rscript, R_temp], shell=False)
 
                 print('cleaning up files')
                 os.remove(R_temp)
