@@ -1,0 +1,12 @@
+######## Global_settings #########
+input folder = F:/avans/stage MM/pipeline_testrun/_XCMS_m
+ DataMatrix file name = Data_matrix_XCMS_m.tsv
+SampleMetada file name = sample_meta_data_XCMS_m.tsv
+Variable Metadata file name = Variable_metaData_XCMS_m.tsv
+name of output folder =   Batch_correction
+######### Filter on Relative Standard Deviation ######## 
+Filter on Relative standard deviation? TRUE OR FALSE =   TRUE
+Treshhold of Relative standard deviation =   25
+######### Graph settings ######## 
+Pixelsize 1 =   20
+Pixelsize 2 =   12
