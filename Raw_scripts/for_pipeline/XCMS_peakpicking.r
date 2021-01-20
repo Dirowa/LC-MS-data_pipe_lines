@@ -31,6 +31,7 @@ data_file_extention <- "*.mzXML"
 polarity1 <- c('negative','positive')[2]
 
 data_file_extention <- paste0("*.",data_file_extention)
+dir.create(output_folder, showWarnings = F)
 output_folder <- paste0(output_folder,'_','XCMS_',unique_name)
 dir.create(output_folder, showWarnings = F)
 ################
