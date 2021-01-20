@@ -92,12 +92,7 @@ for (i in 1:length(rownames(data_matrix))){
   
   
 # filter on amount of hits #
-features_in_sample <- unique(sample_metadata$sample_type)
-features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
-features_in_sample1 <- features_in_sample %>% select('sample')
-features_in_sample1 <- as.data.frame(features_in_sample1)
-
-features_to_delete <- rownames(subset(features_in_sample1,features_in_sample1['sample'] < min_amoutn_of_sample_hit ))
+features_to_delete <- rownames(subset(variable_metadata,variable_metadata['sample'] < min_amoutn_of_sample_hit ))
   
   
 variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
