@@ -1,0 +1,7 @@
+######## Global_settings #########
+input folder =   F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction
+Output folder name =   Noise_filterd
+DataMatrix file name =   Data_matrix_XCMS_m.tsv_batchcorrected.tsv
+SampleMetada file name =   sample_meta_data_XCMS_m.tsv_batchcorrected.tsv
+Variable Metadata file name =   Variable_metaData_XCMS_m.tsv_batchcorrected.tsv
+minimal amout of hits found in samples =   1
