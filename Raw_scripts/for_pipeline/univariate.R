@@ -67,7 +67,7 @@ heat_map_algorithm <- c("euclidean", "maximum", "manhattan", "canberra", "binary
 ###############################
 # correcting some dataformats #
 ###############################
-if (correcting_data_set_according_variable == "null"){
+if (correcting_data_set_according_variable == "NULL"){
   correcting_data_set_according_variable <- NULL
 }
 
