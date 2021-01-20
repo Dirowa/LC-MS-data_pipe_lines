@@ -19,7 +19,7 @@ variable_meta_data <- "Variable_metaData_XCMS_default.tsv_batchcorrected.tsv"
 
 
 
-variables_of_interest <- c("age",'gender', 'bmi')
+variables_of_interest <- 'age,gender,bmi'
 factor_of_interest <- 'gender'
 second_factor_of_interest <- 'age'
 numerical_factor_of_interest <- 'bmi'
@@ -34,6 +34,16 @@ dir.create(output_folder, showWarnings = T)
 output_folder<- paste0(output_folder,'/')
 setwd(output_folder)
 
+
+#####################
+# editing variables #
+####################
+
+if (numerical_factor_of_interest == "NULL"){
+  numerical_factor_of_interest <- NULL
+}
+
+try(variables_of_interest <- strsplit(variables_of_interest,","))
 ##########
 # import #
 ##########
@@ -152,7 +162,7 @@ if (is.null(second_factor_of_interest)){
        typeVc = "x-score",
        parAsColFcVn = lagenda,
        parLabVc = as.character(sampleMetadata[, second_factor_of_interest]),
-       )
+  )
   dev.off()
 }
 
@@ -192,7 +202,7 @@ dev.off()
 
 
 
-
+try(for (i in 1){
 ## ----train--------------------------------------------------------------------
 trainVi <- getSubsetVi(sacurine.oplsda)
 table(lagenda[trainVi], fitted(sacurine.oplsda))
@@ -211,10 +221,10 @@ yRandVn <- sample(c(rep(0, obsI / 2), rep(1, obsI / 2)))
 
 layout(matrix(1:4, nrow = 2, byrow = TRUE))
 
+})
 
 
-
-for (featI in featVi) {
+try(for (featI in featVi) {
   
   png(filename = paste0(output_folder,'OPLS',featI,'.png'),
       width = 960, height = 960, units = "px", pointsize = 12,
@@ -247,48 +257,51 @@ for (featI in featVi) {
   
   dev.off()
 }
-
+)
 
 
 
 
 ## ----vip----------------------------------------------------------------------
-ageVn <- sampleMetadata[, numerical_factor_of_interest]
 
-pvaVn <- apply(dataMatrix, 2,
-               function(feaVn) cor.test(ageVn, feaVn)[["p.value"]])
-
-vipVn <- getVipVn(opls(dataMatrix, ageVn,
-                       predI = 1, orthoI = NA,
-                       fig.pdfC = "none"))
-
-quantVn <- qnorm(1 - pvaVn / 2)
-rmsQuantN <- sqrt(mean(quantVn^2))
-
-opar <- par(font = 2, font.axis = 2, font.lab = 2,
-            las = 1,
-            mar = c(5.1, 4.6, 4.1, 2.1),
-            lwd = 2, pch = 16)
-
-
-png(filename = paste0(output_folder,'significant_levels.png'),
-    width = 960, height = 960, units = "px", pointsize = 12,
-    bg = "white",  res = NA,
-)
-plot(pvaVn, vipVn,
-     col = "red",
-     pch = 16,
-     xlab = "p-value", ylab = "VIP", xaxs = "i", yaxs = "i")
-
-
-box(lwd = 2)
-
-curve(qnorm(1 - x / 2) / rmsQuantN, 0, 1, add = TRUE, col = "red", lwd = 3)
-
-abline(h = 1, col = "blue")
-abline(v = 0.05, col = "blue")
-
-par(opar)
-dev.off()
-
-toW4M(sacSet, paste0(getwd(), "/out_"))
+if (!is.null(numerical_factor_of_interest)){
+  ageVn <- sampleMetadata[, numerical_factor_of_interest]
+  
+  pvaVn <- apply(dataMatrix, 2,
+                 function(feaVn) cor.test(ageVn, feaVn)[["p.value"]])
+  
+  vipVn <- getVipVn(opls(dataMatrix, ageVn,
+                         predI = 1, orthoI = NA,
+                         fig.pdfC = "none"))
+  
+  quantVn <- qnorm(1 - pvaVn / 2)
+  rmsQuantN <- sqrt(mean(quantVn^2))
+  
+  opar <- par(font = 2, font.axis = 2, font.lab = 2,
+              las = 1,
+              mar = c(5.1, 4.6, 4.1, 2.1),
+              lwd = 2, pch = 16)
+  
+  
+  png(filename = paste0(output_folder,'significant_levels.png'),
+      width = 960, height = 960, units = "px", pointsize = 12,
+      bg = "white",  res = NA,
+  )
+  plot(pvaVn, vipVn,
+       col = "red",
+       pch = 16,
+       xlab = "p-value", ylab = "VIP", xaxs = "i", yaxs = "i")
+  
+  
+  box(lwd = 2)
+  
+  curve(qnorm(1 - x / 2) / rmsQuantN, 0, 1, add = TRUE, col = "red", lwd = 3)
+  
+  abline(h = 1, col = "blue")
+  abline(v = 0.05, col = "blue")
+  
+  par(opar)
+  dev.off()
+  
+  toW4M(sacSet, paste0(getwd(), "/out_"))
+}
