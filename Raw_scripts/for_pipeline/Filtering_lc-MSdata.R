@@ -115,7 +115,8 @@ if (isTRUE(filter_QC_SAMPLE_RATIO)){
   features_to_delete <- rownames(features_in_sample1[features_in_sample1[,"ratio"] <= minium_QC_sample_cutoff_ratio, ])
   features_to_delete <- append(features_to_delete,rownames(features_in_sample1[features_in_sample1[,"ratio"] >= maximum_QC_sample_cutoff_ratio, ]))
   
-  try(variable_metadata <- variable_metadata[-features_to_delete,])
+   variable_metadata = variable_metadata[!row.names(variable_metadata)%in%features_to_delete,]
+
   
   variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
   data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
@@ -131,7 +132,8 @@ if(isTRUE(FILTER_blank_SAMPLE_RATIO)){
   features_to_delete <- rownames(features_in_sample[features_in_sample[,"ratio"] <= minium_QC_blank_cutoff_ratio, ])
   features_to_delete <- append(features_to_delete,rownames(features_in_sample[features_in_sample[,"ratio"] >= maximum_QC_blank_cutoff_ratio, ]))
   
-  variable_metadata <- variable_metadata[-features_to_delete,]
+   variable_metadata = variable_metadata[!row.names(variable_metadata)%in%features_to_delete,]
+
   
   variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
   data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
