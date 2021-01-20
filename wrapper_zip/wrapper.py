@@ -165,6 +165,78 @@ def iniatie_check(current_location):
         setting.write('Pixelsize 2 =  12 \n')
         setting.close()
 
+    ########## batchCorrection ##########
+    major_settings = current_location + '/default_settings/noise_filtering_default.txt'
+    if not path.exists(major_settings):
+        print('Noise_filtering default settings file is not found, will be created')
+        setting = open(major_settings, 'w+')
+        setting.write('######## Global_settings #########\n')
+        setting.write('input folder =  F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction \n')
+        setting.write('Output folder name =  Noise_filterd \n')
+        setting.write('DataMatrix file name=  Data_matrix_XCMS_m.tsv_batchcorrected.tsv \n')
+        setting.write('SampleMetada file name =  sample_meta_data_XCMS_m.tsv_batchcorrected.tsv \n')
+        setting.write('Variable Metadata file name =  Variable_metaData_XCMS_m.tsv_batchcorrected.tsv \n')
+        setting.write('minimal amout of hits found in samples =  1 \n')
+        setting.close()
+
+    ########## Univariate ##########
+    major_settings = current_location + '/default_settings/Univariate_default.txt'
+    if not path.exists(major_settings):
+        print('Univariate default settings file is not found, will be created')
+        setting = open(major_settings, 'w+')
+        setting.write('######## Global_settings #########\n')
+        setting.write('input folder =  F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction \n')
+        setting.write('DataMatrix file name=  XCMS_default_batchcorrected_noice_reduced_matrix.tsv \n')
+        setting.write('SampleMetada file name =  XCMS_default_batchcorrected_noice_reduced_sample_metadata.tsv \n')
+        setting.write('Variable Metadata file name =  XCMS_default_batchcorrected_noice_reduced_variable_metadata.tsv\n')
+
+        setting.write('######## Statistical test to perform #########\n')
+        setting.write('Statistical test are 1-ttest 2-limma 3-wilcoxon 4-anova 5-kruskal 6-pearson 7-spearman 8-limma2ways 9-limma2waysInter 10-anova2ways 11-anova2waysInter =  1\n')
+        setting.write('Variable(s) of interest ( comma delimited) = gender,age,bmi  \n')
+        setting.write('Correct dataset according variable (NULL results in skipping) = NULL  \n')
+        setting.write('Main factor of interest = gender  \n')
+        setting.write('secondary factor of interest = age  \n')
+        setting.write('P-value Tresh_hold = 0.05  \n')
+        setting.write('max features as output? (NULL results in skipping) = NULL   \n')
+
+        setting.write('######## Graphical #########\n')
+        setting.write('graph title = univariate testing is super cool  \n')
+        setting.write('prefix of reports = this makes sure that it will not overwrite other reports \n')
+        setting.write('charactersize 1 = 20  \n')
+        setting.write('charactersize 2 = 12  \n')
+
+        setting.write('######## Filtering data #########\n')
+        setting.write('Cutoff Hotellings P-value (lower will sample be deleted) = 0.001  \n')
+        setting.write('Cutoff miss P-value (lower will sample be deleted) = 0.001  \n')
+        setting.write('Cutoff deci P-value (lower will sample be deleted) = 0.001  \n')
+
+        setting.write('######## Heathmap #########\n')
+        setting.write('amount of clusters for samples = 5  \n')
+        setting.write('amount of clusters for features = 5  \n')
+        setting.write('heathmap statistics (1-pearson, 2-kendall, 3-spearman) choose[1:3] = 1  \n')
+        setting.write('heathmap Algorithm (1-euclidean 2-maximum 3-manhattan 4-canberra 5-binary 6-minkowski 7-(1-cor) 8-(1-abs(cor)) choose[1:8] = 7  \n')
+
+        setting.close()
+
+    ########## Univariate ##########
+    major_settings = current_location + '/default_settings/multivariate_default.txt'
+    if not path.exists(major_settings):
+        print('multivariate default settings file is not found, will be created')
+        setting = open(major_settings, 'w+')
+        setting.write('######## Global_settings #########\n')
+        setting.write('input folder =  F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction/Noise_filterd \n')
+        setting.write('DataMatrix file name=  XCMS_m_batchcorrected_noice_reduced_matrix.tsv \n')
+        setting.write('SampleMetada file name =  XCMS_m_batchcorrected_noice_reduced_sample_metadata.tsv \n')
+        setting.write('Variable Metadata file name =  XCMS_m_batchcorrected_noice_reduced_variable_metadata.tsv \n')
+
+        setting.write('######## Multivariate testing #########\n')
+        setting.write('Variable Metadata variables_of_interest (comma delimited) =  age,gender,bmi \n')
+        setting.write('Main factor of interest  =  gender \n')
+        setting.write('second factor of interest  =  age \n')
+        setting.write('Numerical factor of interest (or NULL) =  NULL \n')
+
+
+        setting.close()
 def edit_setttings(current_location,item):
     major_settings = current_location + item
     major_settings_tmp = major_settings + '.TMP.txt'
@@ -185,8 +257,6 @@ def edit_setttings(current_location,item):
     tmp_file.close()
     os.remove(major_settings)
     os.renames(major_settings_tmp, major_settings)
-
-
 def default_parameters_or_given(paths, item):
     loop4 = True
     while loop4:
@@ -311,6 +381,11 @@ while loop:  ## While loop which will keep going until loop = False
                 item =  "/xcms_peakpicking_default.txt"
                 edit_setttings(current_location1, item)
 
+            elif choice == '3':
+                print(current_location)
+                current_location1 = paths[4]
+                item =  "/batch_correction_default.txt"
+                edit_setttings(current_location1, item)
 
             elif choice == "10":
                 loop2 = False
@@ -364,15 +439,46 @@ while loop:  ## While loop which will keep going until loop = False
 
             elif choice1 == "3":
                 print("Noise filtering has been selected")
+                item = "noise_filtering_default.txt"
+                script = "noise_filtering.R"
 
+                path_to_settings = default_parameters_or_given(paths,item)
+                R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
+                print(R_temp)
+                print('Batch_correction iniatated')
+                subprocess.check_call([Rscript, R_temp], shell=False)
+
+                print('cleaning up files')
+                os.remove(R_temp)
 
             elif choice1 == "4":
                 print("Univariate testing  has been selected")
+                item = "Univariate_default.txt"
+                script = "Univariate.R"
+
+                path_to_settings = default_parameters_or_given(paths,item)
+                R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
+                print(R_temp)
+                print('Batch_correction iniatated')
+                subprocess.check_call([Rscript, R_temp], shell=False)
+
+                print('cleaning up files')
+                os.remove(R_temp)
 
 
             elif choice1 == "5":
                 print("Multivariate testing has been selected")
+                item = "multivariate_default.txt"
+                script = "Multivariate.R"
 
+                path_to_settings = default_parameters_or_given(paths,item)
+                R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
+                print(R_temp)
+                print('Batch_correction iniatated')
+                subprocess.check_call([Rscript, R_temp], shell=False)
+
+                print('cleaning up files')
+                os.remove(R_temp)
             elif choice1 == '6':
                 print("Feature Filtering has been selected")
                 ## You can add your code or functions here
