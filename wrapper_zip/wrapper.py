@@ -237,6 +237,43 @@ def iniatie_check(current_location):
 
 
         setting.close()
+
+    ########## filtering ##########
+    major_settings = current_location + '/default_settings/Filtering_default.txt'
+    if not path.exists(major_settings):
+        print('Filtering default default settings file is not found, will be created')
+        setting = open(major_settings, 'w+')
+        setting.write('######## Global_settings #########\n')
+        setting.write('input folder =  F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction/Noise_filterd/ttest_gender \n')
+        setting.write('DataMatrix file name=  XCMS_m_batchcorrected_noice_reduced_matrix.tsv_ttest_gender.tsv \n')
+        setting.write('SampleMetada file name =  XCMS_m_batchcorrected_noice_reduced_sample_metadata.tsv_ttest_gender.tsv \n')
+        setting.write('Variable Metadata file name =  XCMS_m_batchcorrected_noice_reduced_variable_metadata.tsv_ttest_gender.tsv \n')
+        setting.write('output folder name =  filterd \n')
+
+        setting.write('######## Select Filter Methods #########\n')
+        setting.write('Filter on significant hits (TRUE or FALSE) =  TRUE \n')
+        setting.write('Filter on QC/Sample ratio features found (TRUE or FALSE) =  TRUE \n')
+        setting.write('Filter on blank/Sample ratio features found (TRUE or FALSE) =  TRUE \n')
+
+        setting.write('######## Filtering Details #########\n')
+        setting.write('min qc/sample ratio =  0.1 \n')
+        setting.write('max qc/sample ratio =  2.0 \n')
+        setting.write('max blank/sample ratio =  0.0 \n')
+        setting.write('max blank/sample ratio =  1.0 \n')
+        setting.close()
+
+    ########## database annotation ##########
+    major_settings = current_location + '/default_settings/database_annotation_default.txt'
+    if not path.exists(major_settings):
+        print('database annotation default settings file is not found, will be created')
+        setting = open(major_settings, 'w+')
+        setting.write('######## Global_settings #########\n')
+        setting.write('path to variable metadata =  F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction/Noise_filterd/ttest_gender/filterd/noice_reduced_sample_metadata_ttest_gender_filterd_variable_metadata.tsv \n')
+        setting.write('output location =  F:/avans/stage MM/Sherloktest_data_2/annotated/ \n')
+        setting.write('Search range =  0.003 \n')
+        setting.write('Limit output from same mass =  2 \n')
+        setting.close()
+
 def edit_setttings(current_location,item):
     major_settings = current_location + item
     major_settings_tmp = major_settings + '.TMP.txt'
@@ -351,6 +388,50 @@ def R_script_editor_from_setting_list(path_to_settings, paths,script):
             f.write(line)
 
     return(R_tmp)
+def PY_script_editor_from_setting_list(path_to_settings, paths,script):
+    settings = []
+
+    with(open(path_to_settings, 'r')) as f:
+        for line in f:
+            if "#" not in line:
+                print(line)
+                line = ((line.split('='))[1]).rstrip().strip()
+                settings.append(line)
+
+    print(settings)
+    #print(settings)
+    R = paths[1] + '/' + script
+    R_tmp = R +'.TMP.py'
+    counter = 0
+
+    lines = []
+    with open(R,'r') as f:
+        for line in f:
+            lines.append(line)
+
+
+    f = open(R_tmp, 'w')
+    for setting in settings:
+        counter += 1
+        replace_item = "!@#$%^&" + str(counter) + "&^%$#@!"
+        counterA = -1
+        for line in lines:
+            counterA += 1
+            lines[counterA] = line.replace(replace_item,setting)
+
+    if script == "database_annotation.py":
+        replace_item = "###database_location###"
+        counterA = -1
+        for line in lines:
+            counterA += 1
+            lines[counterA] = line.replace(replace_item,(paths[0]+'/'))
+
+    with open(R_tmp,'w') as f:
+        for line in lines:
+            f.write(line)
+
+    return(R_tmp)
+
 
 iniatie_check(current_location)
 #read in major settings#
@@ -421,7 +502,6 @@ while loop:  ## While loop which will keep going until loop = False
 
                 print('cleaning up files')
                 os.remove(R_temp)
-
             elif choice1 == "2":
                 print("Batch Correction has been selected")
                 item = "batch_correction_default.txt"
@@ -435,8 +515,6 @@ while loop:  ## While loop which will keep going until loop = False
 
                 print('cleaning up files')
                 os.remove(R_temp)
-
-
             elif choice1 == "3":
                 print("Noise filtering has been selected")
                 item = "noise_filtering_default.txt"
@@ -450,7 +528,6 @@ while loop:  ## While loop which will keep going until loop = False
 
                 print('cleaning up files')
                 os.remove(R_temp)
-
             elif choice1 == "4":
                 print("Univariate testing  has been selected")
                 item = "Univariate_default.txt"
@@ -464,8 +541,6 @@ while loop:  ## While loop which will keep going until loop = False
 
                 print('cleaning up files')
                 os.remove(R_temp)
-
-
             elif choice1 == "5":
                 print("Multivariate testing has been selected")
                 item = "multivariate_default.txt"
@@ -481,12 +556,29 @@ while loop:  ## While loop which will keep going until loop = False
                 os.remove(R_temp)
             elif choice1 == '6':
                 print("Feature Filtering has been selected")
-                ## You can add your code or functions here
+                item = "Filtering_default.txt"
+                script = "Filtering_LC-MS-data.R"
 
+                path_to_settings = default_parameters_or_given(paths,item)
+                R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
+                print(R_temp)
+                print('Batch_correction iniatated')
+                subprocess.check_call([Rscript, R_temp], shell=False)
 
+                print('cleaning up files')
+                os.remove(R_temp)
             elif choice1 == "7":
                 print("Database Annotation has been selected")
+                item = "database_annotation_default.txt"
+                script = "database_annotation.py"
 
+                path_to_settings = default_parameters_or_given(paths, item)
+                R_temp = PY_script_editor_from_setting_list(path_to_settings, paths, script)
+                print(R_temp)
+
+                os.system('python ' + R_temp)
+                print('cleaning up files')
+                os.remove(R_temp)
 
             elif choice1 == "8":
                 print("Comparisation has been selected ")
