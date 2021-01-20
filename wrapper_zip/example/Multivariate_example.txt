@@ -1,0 +1,10 @@
+######## Global_settings #########
+input folder =   F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction/Noise_filterd
+DataMatrix file name =   XCMS_m_batchcorrected_noice_reduced_matrix.tsv
+SampleMetada file name =   XCMS_m_batchcorrected_noice_reduced_sample_metadata.tsv
+Variable Metadata file name =   XCMS_m_batchcorrected_noice_reduced_variable_metadata.tsv
+######## Multivariate testing #########
+Variable Metadata variables_of_interest (comma delimited) =   age,gender,bmi
+Main factor of interest =   gender
+second factor of interest =   age
+Numerical factor of interest (or NULL) =   NULL
