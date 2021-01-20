@@ -76,7 +76,7 @@ if (max_features_output == "NA"){
 }
 
 
-try(variables_of_interest <- strsplit(variables_of_interest,","))
+try(variables_of_interest <- strsplit(variables_of_interest,",")[[1]])
 
 items_to_filter <- c('blank', 'QC')
 
