@@ -25,25 +25,19 @@ sample_meta_data <- "XCMS_default_batchcorrected_noice_reduced_sample_metadata.t
 variable_meta_data <- "XCMS_default_batchcorrected_noice_reduced_variable_metadata.tsv"
 
 
-#c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman",
-#"limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter"
-test <- "ttest"
+test <- c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman","limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter")[1]
 
-variables_of_interest <- c("gender",'age', 'bmi')
-correcting_data_set_according_variable <- NULL
+
+variables_of_interest <- "gender,age,bmi"
+correcting_data_set_according_variable <- "NULL"
 factor_of_interest <- 'gender'
 second_factor_of_interest <- 'age'
 
 P_value_treshhold <- 0.05
-max_features_output <- NA
-graph_title <- NA
+max_features_output <- "NA"
+graph_title <- ''
 pre_fix_of_report <- ""
 
-# column name of sample type names
-
-#fill in the items to files in the sampleType or fill in NULL
-# items_to_filter <- c('blank','QC')
-items_to_filter <- c('blank', 'QC')
 
 ######### filtering data ##########
 # keeps data who is bigger then these numbers#
@@ -66,8 +60,21 @@ pixelsize2 <- 12
 
 
 
+###############################
+# correcting some dataformats #
+###############################
+if (correcting_data_set_according_variable == "null"){
+  correcting_data_set_according_variable <- NULL
+}
+
+if (max_features_output == "NA"){
+    max_features_output <- NA
+}
 
 
+try(variables_of_interest <- strsplit(variables_of_interest,","))
+
+items_to_filter <- c('blank', 'QC')
 
 
 ##############################################
@@ -113,10 +120,10 @@ for (i in 1:length(rownames(data_matrix))){
 
 
 
-  
-  
-  
-  
+
+
+
+
 
 
 
@@ -187,8 +194,8 @@ dev.off()
 
 if (!is.null(items_to_filter)){
   for (i in 1:length(items_to_filter)){
-  set <- set[, Biobase::pData(set)[, sampleType] != items_to_filter[i]]
-  
+    set <- set[, Biobase::pData(set)[, sampleType] != items_to_filter[i]]
+    
   }
   png(filename = paste0(output_folder,result,'overview_after_sample_filtering.png'),
       width = 960, height = 960, units = "px", pointsize = pixelsize1,
@@ -204,7 +211,7 @@ if (!is.null(items_to_filter)){
                                                
                                                report.c = c("none", "interactive", "myfile.txt")[3])
   dev.off()
-  }
+}
 
 
 ####################################################
@@ -212,9 +219,9 @@ if (!is.null(items_to_filter)){
 ####################################################
 if(!(is.null(correcting_data_set_according_variable))){
   Biobase::exprs(set) <- sweep(Biobase::exprs(set),
-                                         2,
-                                         Biobase::pData(set)[, correcting_data_set_according_variable],
-                                         "/")
+                               2,
+                               Biobase::pData(set)[, correcting_data_set_according_variable],
+                               "/")
   set <- phenomis::inspecting(set)
 }
 
@@ -223,8 +230,8 @@ if(!(is.null(correcting_data_set_according_variable))){
 #####################################################
 
 set <- set[, Biobase::pData(set)[, "hotel_pval"] >= cutoff_hotelPval &
-                                 Biobase::pData(set)[, "miss_pval"] >= cutoff_missPval &
-                                 Biobase::pData(set)[, "deci_pval"] >= cutoffDecipval]
+             Biobase::pData(set)[, "miss_pval"] >= cutoff_missPval &
+             Biobase::pData(set)[, "deci_pval"] >= cutoffDecipval]
 
 phenomis::inspecting(set)
 
@@ -241,15 +248,15 @@ png(filename = paste0(output_folder,result,'signif_chart.png'),
 
 univariate_set <- phenomis::hypotesting(
   set,
-                                        test.c = test,
-                                        factor_of_interest,
-                                        adjust_thresh.n = P_value_treshhold,
-                                        signif_maxprint.i = max_features_output,
-                                        title.c = 'Significant levels of univariate testing',
-                                        prefix.c = pre_fix_of_report,
-                                        adjust.c = "none",
-                                        report.c = paste0(result,'.txt'),
-                                        figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2])
+  test.c = test,
+  factor_of_interest,
+  adjust_thresh.n = P_value_treshhold,
+  signif_maxprint.i = max_features_output,
+  title.c = 'Significant levels of univariate testing',
+  prefix.c = pre_fix_of_report,
+  adjust.c = "none",
+  report.c = paste0(result,'.txt'),
+  figure.c = c("none", "interactive", "interactive_plotly", "myfile.pdf")[2])
 
 
 
