@@ -1,0 +1,15 @@
+######## Global_settings #########
+input folder =   F:/avans/stage MM/pipeline_testrun/_XCMS_m/Batch_correction/Noise_filterd/ttest_gender
+DataMatrix file name =   XCMS_m_batchcorrected_noice_reduced_matrix.tsv_ttest_gender.tsv
+SampleMetada file name =   XCMS_m_batchcorrected_noice_reduced_sample_metadata.tsv_ttest_gender.tsv
+Variable Metadata file name =   XCMS_m_batchcorrected_noice_reduced_variable_metadata.tsv_ttest_gender.tsv
+output folder name =   filterd
+######## Select Filter Methods #########
+Filter on significant hits (TRUE or FALSE) =   TRUE
+Filter on QC/Sample ratio features found (TRUE or FALSE) =   TRUE
+Filter on blank/Sample ratio features found (TRUE or FALSE) =   TRUE
+######## Filtering Details #########
+min qc/sample ratio =   0.1
+max qc/sample ratio =   2.0
+max blank/sample ratio =   0.0
+max blank/sample ratio =   1.0
