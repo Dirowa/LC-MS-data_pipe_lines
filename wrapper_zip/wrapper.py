@@ -145,6 +145,26 @@ def iniatie_check(current_location):
         setting.write('fixedMz   = 0 \n')
         setting.write('fixedRt    = 0 \n')
         setting.close()
+
+    ########## batchCorrection ##########
+    major_settings = current_location + '/default_settings/batch_correction_default.txt'
+    if not path.exists(major_settings):
+        print('batch_correction_default settings file is not found, will be created')
+        setting = open(major_settings, 'w+')
+        setting.write('######## Global_settings #########\n')
+        setting.write('input folder =  F:/avans/stage MM/xcms_pipeline/_XCMS_default \n')
+        setting.write(' DataMatrix file name=  Data_matrix_XCMS_default.tsv \n')
+        setting.write('SampleMetada file name =  sample_meta_data_XCMS_default.tsv \n')
+        setting.write('Variable Metadata file name =  Variable_metaData_XCMS_default.tsv \n')
+        setting.write('name of output folder =  Batch_correction \n')
+        setting.write('######### Filter on Relative Standard Deviation ######## \n')
+        setting.write('Filter on Relative standard deviation? TRUE OR FALSE =  TRUE \n')
+        setting.write('Treshhold of Relative standard deviation =  25 \n')
+        setting.write('######### Graph settings ######## \n')
+        setting.write('Pixelsize 1 =  20 \n')
+        setting.write('Pixelsize 2 =  12 \n')
+        setting.close()
+
 def edit_setttings(current_location,item):
     major_settings = current_location + item
     major_settings_tmp = major_settings + '.TMP.txt'
@@ -198,7 +218,7 @@ def default_parameters_or_given(paths, item):
                         line1 = line[0].rstrip()
                         line2 = line[1].rstrip()
 
-                        set = (input("enther path to " + line1 + " , press enter for " + line2 + " : ") or line2)
+                        set = (input("enter parameter for " + line1 + " , press enter for " + line2 + " : ") or line2)
                         set = (line1 + ' = ' + set).replace('\\', '/') + "\n"
                         tmp_file.write(set)
                     else:
@@ -321,7 +341,7 @@ while loop:  ## While loop which will keep going until loop = False
                 path_to_settings = default_parameters_or_given(paths,item)
                 R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
                 print(R_temp)
-                print('Peakpicking iniatiated')
+                print('Peakpicking iniatated')
                 subprocess.check_call([Rscript, R_temp], shell=False)
 
                 print('cleaning up files')
@@ -329,6 +349,17 @@ while loop:  ## While loop which will keep going until loop = False
 
             elif choice1 == "2":
                 print("Batch Correction has been selected")
+                item = "batch_correction_default.txt"
+                script = "batch_correction.R"
+
+                path_to_settings = default_parameters_or_given(paths,item)
+                R_temp = R_script_editor_from_setting_list(path_to_settings, paths,script)
+                print(R_temp)
+                print('Batch_correction iniatated')
+                subprocess.check_call([Rscript, R_temp], shell=False)
+
+                print('cleaning up files')
+                os.remove(R_temp)
 
 
             elif choice1 == "3":
