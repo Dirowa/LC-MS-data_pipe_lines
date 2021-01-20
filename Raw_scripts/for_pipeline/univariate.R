@@ -39,6 +39,11 @@ graph_title <- ''
 pre_fix_of_report <- ""
 
 
+
+pixelsize1 <- 20
+pixelsize2 <- 12
+
+
 ######### filtering data ##########
 # keeps data who is bigger then these numbers#
 cutoff_hotelPval <-  0.001
@@ -54,8 +59,7 @@ heat_map_statistics <- c("pearson", "kendall", "spearman")[1]
 heat_map_algorithm <- c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski",
                         "1-cor", "1-abs(cor)")[7]
 
-pixelsize1 <- 20
-pixelsize2 <- 12
+
 
 
 
