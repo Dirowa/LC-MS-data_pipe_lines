@@ -7,19 +7,18 @@ library( randomcoloR)
 library(reshape2)
 
 
-folder <- "F:/avans/stage MM/xcms_pipeline/_XCMS_default/batch_correction/Noice_reducted/ttest_gender/"
-variable_metadata <- "XCMS_default_batchcorrected_noice_reduced_variable_metadata.tsv_ttest_gender.tsv"
-data_matrix <- "XCMS_default_batchcorrected_noice_reduced_matrix.tsv_ttest_gender.tsv"
-sample_metadata <-"XCMS_default_batchcorrected_noice_reduced_sample_metadata.tsv_ttest_gender.tsv"
+folder <- "F:/avans/stage MM/Sherloktest_data_3/SherLOKdata_processed_XCMS_IPO_fitgaus_2L/batch_correction/Noice_reducted/ttest_sex"
+variable_metadata <- "XCMS_IPO_fitgaus_2L_batchcorrected_noice_reduced_variable_metadata.tsv_ttest_sex.tsv"
+data_matrix <- "XCMS_IPO_fitgaus_2L_batchcorrected_noice_reduced_matrix.tsv_ttest_sex.tsv"
+sample_metadata <-"XCMS_IPO_fitgaus_2L_batchcorrected_noice_reduced_sample_metadata.tsv_ttest_sex.tsv"
 
 
 outputfolder_name <- "filterd"
 
 filter_significant_hits = TRUE
 filter_QC_SAMPLE_RATIO = TRUE
-FILTER_blank_SAMPLE_RATIO = TRUE
+FILTER_blank_SAMPLE_RATIO = FALSE
 
-min_amoutn_of_sample_hit <- 1
 
 minium_QC_sample_cutoff_ratio <- 0.1
 maximum_QC_sample_cutoff_ratio <- 2.0
@@ -32,15 +31,15 @@ maximum_QC_blank_cutoff_ratio <- 1.0
 #####################
 # creating the paths#
 #####################
-outputfolder <- (paste0(folder,outputfolder_name,'/'))
+outputfolder <- (paste0(folder,'/',outputfolder_name,'/'))
 dir.create(outputfolder, showWarnings = T)
 
 
 
 
-Variable_metadata_path <- paste0(folder, variable_metadata)
-data_matrix_path <- paste0(folder, data_matrix)
-sample_metadata_path <- paste0(folder, sample_metadata)
+Variable_metadata_path <- paste0(folder,'/' ,variable_metadata)
+data_matrix_path <- paste0(folder, '/' ,data_matrix)
+sample_metadata_path <- paste0(folder, '/' ,sample_metadata)
 
 ####################
 # reading in data###
@@ -71,7 +70,7 @@ sample_metadata <- sample_metadata[order(row.names(sample_metadata)), ]
 features_in_sample <- unlist(unique(sample_metadata$sample_type))
 features_in_sample <- variable_metadata[ , (names(variable_metadata) %in% features_in_sample)]
 
-palette <-  palette(rainbow((length(names(features_in_sample)))))
+palette <-  palette(rainbow((length(colnames(features_in_sample)))))
 png(filename = paste0(outputfolder,"Features count in each sample type before filtering.png"),
     width = 960, height = 960, units = "px", pointsize = 12,
     bg = "white",  res = NA,
@@ -115,8 +114,7 @@ if (isTRUE(filter_QC_SAMPLE_RATIO)){
   features_to_delete <- rownames(features_in_sample1[features_in_sample1[,"ratio"] <= minium_QC_sample_cutoff_ratio, ])
   features_to_delete <- append(features_to_delete,rownames(features_in_sample1[features_in_sample1[,"ratio"] >= maximum_QC_sample_cutoff_ratio, ]))
   
-   variable_metadata = variable_metadata[!row.names(variable_metadata)%in%features_to_delete,]
-
+  try(variable_metadata <- variable_metadata[-features_to_delete,])
   
   variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
   data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
@@ -132,9 +130,7 @@ if(isTRUE(FILTER_blank_SAMPLE_RATIO)){
   features_to_delete <- rownames(features_in_sample[features_in_sample[,"ratio"] <= minium_QC_blank_cutoff_ratio, ])
   features_to_delete <- append(features_to_delete,rownames(features_in_sample[features_in_sample[,"ratio"] >= maximum_QC_blank_cutoff_ratio, ]))
   
-   variable_metadata = variable_metadata[!row.names(variable_metadata)%in%features_to_delete,]
 
-  
   variable_metadata <- variable_metadata[ !(rownames(variable_metadata) %in% features_to_delete), ]
   data_matrix <- data_matrix[ !(rownames(data_matrix) %in% features_to_delete), ]
 }
@@ -171,7 +167,7 @@ dev.off()
 
 #retrieving output name #
 
-tmp <- as.list(strsplit(gsub(".tsv*","",sample_metadata_path), '/')[[1]])
+tmp <- as.list(strsplit(gsub(".tsv*","",data_matrix_path), '/')[[1]])
 tmp <- tmp[(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='')
 tmp <- as.list(strsplit(tmp,"_")[[1]])
@@ -185,13 +181,27 @@ line <- readLines(path)
 line[1] <- paste0('""\t',line[1])
 writeLines(line,path)
 
+tmp <- as.list(strsplit(gsub(".tsv*","",sample_metadata_path), '/')[[1]])
+tmp <- tmp[(length(tmp))]
+tmp <- paste( unlist(tmp), collapse='')
+tmp <- as.list(strsplit(tmp,"_")[[1]])
 
+tmp<- tmp[4:(length(tmp))]
+tmp <- paste( unlist(tmp), collapse='_')
 path <- paste0(outputfolder,tmp,'_filterd_sample_metadata.tsv')
 write.table(sample_metadata, path, sep ='\t')
 line <- readLines(path)
 line[1] <- paste0('""\t',line[1])
 writeLines(line,path)
 
+
+tmp <- as.list(strsplit(gsub(".tsv*","",Variable_metadata_path), '/')[[1]])
+tmp <- tmp[(length(tmp))]
+tmp <- paste( unlist(tmp), collapse='')
+tmp <- as.list(strsplit(tmp,"_")[[1]])
+
+tmp<- tmp[4:(length(tmp))]
+tmp <- paste( unlist(tmp), collapse='_')
 
 path <- paste0(outputfolder,tmp,'_filterd_variable_metadata.tsv')
 write.table(variable_metadata, path, sep ='\t')
