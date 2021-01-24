@@ -236,7 +236,7 @@ safe_name <- paste0(output_folder,'/','sample_meta_data_XCMS_',unique_name,'.tsv
 sample_metadata1 <- as.data.frame(colData(res))
 rownames(sample_metadata1) <- sample_metadata1[,1]
 sample_metadata1 <- sample_metadata1[,-1]
-rownames(sample_metadata1) <- colnames(data_matrix)
+                                                 
 sample_metadata1[sample_type][sample_metadata1[sample_type] == QC_in_sample_type] <- "QC"
 sample_metadata1[sample_type][sample_metadata1[sample_type] == blank_in_sampleType] <- "blank"
 sample_metadata1[sample_type][sample_metadata1[sample_type] == sample_in_sampleType] <- "sample"
