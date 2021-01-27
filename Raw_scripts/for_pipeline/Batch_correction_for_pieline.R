@@ -495,7 +495,7 @@ variable_metadata <-  read.table(paste0(final_output_folder,'/loes_variableMetad
 data_matrix <- read.table(paste0(final_output_folder,'/Best_batchcorrected.tsv'), sep = '\t')
 
 #retrieve differences#
-a <-variable_metadata[,1]
+a <-rownames(variable_metadata)
 b <-rownames(data_matrix)
 diffrences <- setdiff(a,b)
 if (length(diffrences) != 0){
