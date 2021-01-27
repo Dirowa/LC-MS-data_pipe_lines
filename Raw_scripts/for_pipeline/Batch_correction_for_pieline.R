@@ -64,12 +64,12 @@ library( phenomis)
 #######################
 # do not change#
 
-input_folder <- 'F:/avans/stage MM/xcms_pipeline/_XCMS_default'
+input_folder <- 'F:/avans/stage MM/Sherloktest_data_3/SherLOKdata_processed_XCMS_IPO_fitgaus_2L'
 
 
-Data_matrix_xcms <- "Data_matrix_XCMS_default.tsv"
-samplemetadata <- "sample_meta_data_XCMS_default.tsv"
-variable_metadata <- "Variable_metaData_XCMS_default.tsv"
+Data_matrix_xcms <- "Data_matrix_XCMS_IPO_fitgaus_2L.tsv"
+samplemetadata <- "sample_meta_data_XCMS_IPO_fitgaus_2L.tsv"
+variable_metadata <- "Variable_metaData_XCMS_IPO_fitgaus_2L.tsv"
 
 final_output_folder <- "batch_correction"
 # columns names in dataframe of metadata
@@ -78,8 +78,8 @@ Best_peakpicked_based_on <- c("mean_var_QC_log10","Ratio_VAR_QC_log")[2]
 
 
 
-Filter_on_RSD <- TRUE
-RSD_treshhold <- 25
+
+
 
 
 pixelsize1 <- 20
@@ -121,7 +121,7 @@ metadata1 <- as.data.frame(t(metadata))
 
 # order to be sure
 metadata1<- metadata1[ , order(names(metadata1))]
-intensities<- intensities[ , order(names(intensities))]
+intensities<- intensities[ , order(names(data_matrix))]
 
 Index <- which(rownames(metadata1) == sample_type) 
 sample_types  <- metadata1[Index, ]  ## subsets dataframe
@@ -138,9 +138,7 @@ mSet<-InitDataObjects("pktable", "stat", FALSE)
 mSet<-Read.TextData(mSet, 'BatchCorrect_import_data_1', "col", "disc")
 mSet<-SanityCheckData(mSet)
 mSet<-ReplaceMin(mSet)
-if (Filter_on_RSD == TRUE){
-  mSet<-FilterVariable(mSet, "iqr", "F", RSD_treshhold)
-}
+# here was RSD filtering before #
 mSet<-PreparePrenormData(mSet)
 mSet<-Normalization(mSet, "NULL", "LogNorm", "NULL", ratio=FALSE, ref = names[1,])
 
@@ -298,11 +296,11 @@ for (i in 1:length(methods))  {
     phenomis::writing(corrcted_set, dir.c = final_output_folder, prefix.c = 'loessALL_BatchCorrected_data',
                       overwrite.l = TRUE)
     #filter for only QC sets
-    
+
     
     file.remove(paste0(final_output_folder,'/',"loessALL_BatchCorrected_data_sampleMetadata.tsv"))
     file.remove(paste0(final_output_folder,'/',"loessALL_BatchCorrected_data_variableMetadata.tsv"))
-    
+
     #items[counter] <- 'loessQC_BatchCorrected_data.tsv'
   }
   else {
@@ -427,10 +425,9 @@ for (i in 1:length(items)){
 
 
 ## ordering output
-means1 <- do.call(rbind, Map(data.frame,mean_var_total_log10=means2, mean_var_QC_log10=means, file=items))
-means <- transform(means1, Ratio_VAR_QC_log =  mean_var_QC_log10 / mean_var_total_log10)
+means <- do.call(rbind, Map(data.frame,mean_var_total_log10=means2, mean_var_QC_log10=means, file=items))
+means <- transform(means, Ratio_VAR_QC_log =  mean_var_QC_log10 / mean_var_total_log10)
 means <- means[order(means[Best_peakpicked_based_on]),]
-
 print(means)
 #write down output of benchmarking
 write.csv(means, file = 'Benchmarking_batch_correction.csv')
@@ -448,7 +445,7 @@ if (sub('.*\\.', '', means[1,3]) == "tsv"){
   
   write.table(best_batch_corrected,'Best_batchcorrected.tsv', sep = '\t')
   
-    
+  
 } else if ((sub('.*\\.', '', means[1,3]) == "csv") ) {
   best_batch_corrected <- read.csv(means[1,3])
   best_batch_corrected <- as.data.frame((best_batch_corrected))
