@@ -12,7 +12,7 @@ import time
 
 xlsx_files_path = "F:/avans/stage MM/Annotated_outpet_sherlOK/"
 output = "F:/avans/stage MM/Annotated_outpet_sherlOK/venn_diagram_data.csv"
-#1,5,7
+#1,2,5,7
 row_number = 7
 
 Round_down_numbers = False
@@ -40,27 +40,20 @@ for file in xlsx_files:
     #sheet.cell_value(0, 0)
     # reading excel files
     for i in range(sheet.nrows):
-
-        mz_value = (str(sheet.cell(i,row_number))).replace('text:','').replace("'",'')
-        #print(mz_value)
+        mz_value = (str(sheet.cell(i,row_number))).replace('text:','').replace('number:','').replace("'",'')
 
         try:
-            mz_value2 = mz_value.split(":")
-            mz_value1 = mz_value2[1].replace("'","")
             if Round_down_numbers == True:
-                mz_value1 =str(mz_value1)
+                mz_value1 =str(mz_value)
                 mz_value1 = float(mz_value1)
-                mz_value1 = round(mz_value1,deci)
-            mz_value = mz_value2[0] + ':' + str(mz_value1)
-            #print(mz_value)
+                mz_value = round(mz_value1,deci)
         except:
-            print('whoops')
+            print('whoops1')
+        mz_value = str(mz_value)
         # reading in new found mz_values
-
-
         if mz_value not in mz_values_unique:
             mz_values_unique.append(mz_value)
-
+print(mz_values_unique)
 values = dict.fromkeys(mz_values_unique, '')
 values['algorithm'] = ''
 ##################################
@@ -79,33 +72,30 @@ for file in xlsx_files:
     # reading excel files
 
     for i in range(sheet.nrows):
-        mz_value = (str(sheet.cell(i,row_number))).replace('text:','').replace("'",'')
+        mz_value = (str(sheet.cell(i,row_number))).replace('text:','').replace('number:','').replace("'",'')
         if mz_value not in TMP_mz:
             TMP_mz.append(mz_value)
 
     for item in TMP_mz:
+            # print(item)
+            #print(values[item])
             try:
-                #print(item)
-                mz_value2 = item.split(":")
-                mz_value1 = mz_value2[1].replace("'", "")
                 if Round_down_numbers == True:
-                    mz_value1 = str(mz_value1)
-                    mz_value1 = float(mz_value1)
-                    mz_value1 = round(mz_value1, deci)
-                item = mz_value2[0] + ':' + str(mz_value1)
+                    item = str(item)
+                    item = float(item)
+                    item = round(item, deci)
+                    item = str(item)
+                    print(item)
             except:
-                print('whoops')
+                print('whoops2')
 
-            if(len(values[item])) < counter:
+            if (len(values[item])) < counter:
                 values[item] = str(values[item]) + (str(1))
 
-            print(values[item] )
-            print(len(values[item]))
     for key, value in values.items():
         if len(str(value)) != counter:
             if key != 'algorithm':
                 values[key] = str(value) + (str(0))
-    #print(values[item])
 
 output = open(output,'w')
 
