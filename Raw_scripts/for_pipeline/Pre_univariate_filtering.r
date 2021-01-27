@@ -5,7 +5,7 @@
 library(dplyr)
 library( randomcoloR)
 library(reshape2)
-
+library(MetaboAnalystR)
 
 folder <- 'F:/avans/stage MM/Sherloktest_data_3/SherLOKdata_processed_XCMS_IPO_fitgaus_2L/batch_correction'
 outputfolder_name <- "Noice_reducted"
