@@ -121,7 +121,7 @@ metadata1 <- as.data.frame(t(metadata))
 
 # order to be sure
 metadata1<- metadata1[ , order(names(metadata1))]
-intensities<- intensities[ , order(names(data_matrix))]
+intensities<- intensities[ , order(names(intensities))]
 
 Index <- which(rownames(metadata1) == sample_type) 
 sample_types  <- metadata1[Index, ]  ## subsets dataframe
