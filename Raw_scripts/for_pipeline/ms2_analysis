@@ -35,7 +35,7 @@ cwp <- CentWaveParam(
 
 
 path_to_output_folder <- paste0(path_to_output_folder,'/Ms2_feature_list', unique_name, '.tsv')
-data_file_extention <- paste0('*.'data_file_extention)
+data_file_extention <- paste0('*.',data_file_extention)
 data_files <- list.files(path = path_to_files, pattern = data_file_extention, full.names = TRUE, recursive = FALSE)
 
 swath_data <- readMSData(data_files, mode = "onDisk")
