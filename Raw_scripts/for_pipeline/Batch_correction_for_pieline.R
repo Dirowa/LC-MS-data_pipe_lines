@@ -74,7 +74,7 @@ variable_metadata <- "Variable_metaData_XCMS_default.tsv"
 final_output_folder <- "batch_correction"
 # columns names in dataframe of metadata
 
-
+Best_peakpicked_based_on <- c("mean_var_QC_log10","Ratio_VAR_QC_log")[2]
 
 
 
@@ -139,7 +139,7 @@ mSet<-Read.TextData(mSet, 'BatchCorrect_import_data_1', "col", "disc")
 mSet<-SanityCheckData(mSet)
 mSet<-ReplaceMin(mSet)
 if (Filter_on_RSD == TRUE){
-mSet<-FilterVariable(mSet, "iqr", "F", RSD_treshhold)
+  mSet<-FilterVariable(mSet, "iqr", "F", RSD_treshhold)
 }
 mSet<-PreparePrenormData(mSet)
 mSet<-Normalization(mSet, "NULL", "LogNorm", "NULL", ratio=FALSE, ref = names[1,])
@@ -298,11 +298,11 @@ for (i in 1:length(methods))  {
     phenomis::writing(corrcted_set, dir.c = final_output_folder, prefix.c = 'loessALL_BatchCorrected_data',
                       overwrite.l = TRUE)
     #filter for only QC sets
-
+    
     
     file.remove(paste0(final_output_folder,'/',"loessALL_BatchCorrected_data_sampleMetadata.tsv"))
     file.remove(paste0(final_output_folder,'/',"loessALL_BatchCorrected_data_variableMetadata.tsv"))
-
+    
     #items[counter] <- 'loessQC_BatchCorrected_data.tsv'
   }
   else {
@@ -428,8 +428,9 @@ for (i in 1:length(items)){
 
 ## ordering output
 means1 <- do.call(rbind, Map(data.frame,mean_var_total_log10=means2, mean_var_QC_log10=means, file=items))
-means <- means1[order(means1$mean_var_QC_log10),]
-means <- transform(means, Ratio_VAR_QC_log = mean_var_total_log10 / mean_var_QC_log10)
+means <- transform(means1, Ratio_VAR_QC_log =  mean_var_QC_log10 / mean_var_total_log10)
+means <- means[order(means[Best_peakpicked_based_on]),]
+
 print(means)
 #write down output of benchmarking
 write.csv(means, file = 'Benchmarking_batch_correction.csv')
@@ -447,7 +448,7 @@ if (sub('.*\\.', '', means[1,3]) == "tsv"){
   
   write.table(best_batch_corrected,'Best_batchcorrected.tsv', sep = '\t')
   
-  
+    
 } else if ((sub('.*\\.', '', means[1,3]) == "csv") ) {
   best_batch_corrected <- read.csv(means[1,3])
   best_batch_corrected <- as.data.frame((best_batch_corrected))
