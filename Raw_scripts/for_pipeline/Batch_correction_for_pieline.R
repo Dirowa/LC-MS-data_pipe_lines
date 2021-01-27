@@ -168,12 +168,13 @@ write.csv(new_normalised_set, "new_normalized_set.csv")
 a <-rownames(variable_metadata_matrix)
 b <-colnames(new_normalised_set)
 diffrences <- setdiff(a,b)
+if (length(diffrences) != 0){
 diffrences <- diffrences[diffrences != ""]
 
-#Remove the differences
-for (i in 1:length(diffrences)){
-  variable_metadata_matrix<-variable_metadata_matrix[!(rownames(variable_metadata_matrix)==diffrences[[i]]),]
-}
+  #Remove the differences
+  for (i in 1:length(diffrences)){
+    variable_metadata_matrix<-variable_metadata_matrix[!(rownames(variable_metadata_matrix)==diffrences[[i]]),]
+}}
 
 
 
