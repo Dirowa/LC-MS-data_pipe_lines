@@ -1,6 +1,6 @@
 #########################################################################
 # peakpicking comparisator to create ven diagrams                       #
-# input files are the output files from the query databases xlsx file 
+# input files are the output files from the query databases xlsx file
 # files should be run through Venn Diagram maker to get some easy graph#
 #########################################################################
 
@@ -8,13 +8,15 @@ import os
 import pip
 pip.main(['install','xlrd'])
 import xlrd
-
+import time
 
 xlsx_files_path = "F:/avans/stage MM/Annotated_outpet_sherlOK/"
 output = "F:/avans/stage MM/Annotated_outpet_sherlOK/venn_diagram_data.csv"
 #1,5,7
-row_number = 2
+row_number = 7
 
+Round_down_numbers = False
+deci = 2
 xlsx_files = []
 files_used = []
 
@@ -40,16 +42,17 @@ for file in xlsx_files:
     for i in range(sheet.nrows):
 
         mz_value = (str(sheet.cell(i,row_number))).replace('text:','').replace("'",'')
-        print(mz_value)
+        #print(mz_value)
 
         try:
             mz_value2 = mz_value.split(":")
             mz_value1 = mz_value2[1].replace("'","")
-            mz_value1 =str(mz_value1)
-            mz_value1 = float(mz_value1)
-            mz_value1 = round(mz_value1,3)
+            if Round_down_numbers == True:
+                mz_value1 =str(mz_value1)
+                mz_value1 = float(mz_value1)
+                mz_value1 = round(mz_value1,deci)
             mz_value = mz_value2[0] + ':' + str(mz_value1)
-            print(mz_value)
+            #print(mz_value)
         except:
             print('whoops')
         # reading in new found mz_values
@@ -66,6 +69,7 @@ values['algorithm'] = ''
 counter = 0
 for file in xlsx_files:
     counter += 1
+
     TMP_mz = []
     values['algorithm'] = str(values['algorithm']) + file + ','
     file = xlsx_files_path + str(file)
@@ -81,29 +85,34 @@ for file in xlsx_files:
 
     for item in TMP_mz:
             try:
+                #print(item)
                 mz_value2 = item.split(":")
                 mz_value1 = mz_value2[1].replace("'", "")
-                mz_value1 = str(mz_value1)
-                mz_value1 = float(mz_value1)
-                mz_value1 = round(mz_value1, 3)
+                if Round_down_numbers == True:
+                    mz_value1 = str(mz_value1)
+                    mz_value1 = float(mz_value1)
+                    mz_value1 = round(mz_value1, deci)
                 item = mz_value2[0] + ':' + str(mz_value1)
-                print(mz_value)
             except:
                 print('whoops')
-            values[item] = str(values[item]) + (str(1))
 
+            if(len(values[item])) < counter:
+                values[item] = str(values[item]) + (str(1))
 
-
+            print(values[item] )
+            print(len(values[item]))
     for key, value in values.items():
         if len(str(value)) != counter:
             if key != 'algorithm':
                 values[key] = str(value) + (str(0))
+    #print(values[item])
 
 output = open(output,'w')
 
 #removing first dic
 del values[(list(values.keys())[0])]
 
+#print(values)
 for key,value in values.items():
     if key == 'algorithm':
         value = value[:-1]
@@ -118,4 +127,3 @@ for key,value in values.items():
         output.write(string)
 
 output.close()
-
