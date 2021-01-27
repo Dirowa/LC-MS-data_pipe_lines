@@ -498,12 +498,13 @@ data_matrix <- read.table(paste0(final_output_folder,'/Best_batchcorrected.tsv')
 a <-variable_metadata[,1]
 b <-rownames(data_matrix)
 diffrences <- setdiff(a,b)
-diffrences <- diffrences[diffrences != ""]
-
-#Remove the differences
-for (i in 1:length(diffrences)){
-  variable_metadata<-variable_metadata[!(variable_metadata$V1==diffrences[[i]]),]
-}
+if (length(diffrences) != 0){
+  diffrences <- diffrences[diffrences != ""]
+  
+  #Remove the differences
+  for (i in 1:length(diffrences)){
+    variable_metadata<-variable_metadata[!(variable_metadata$V1==diffrences[[i]]),]
+  }}
 
 # make the files pretty enough for statistical analyis
 colnames(variable_metadata) <- variable_metadata[1,]
