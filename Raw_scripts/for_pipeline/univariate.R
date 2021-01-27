@@ -19,10 +19,10 @@ library(stringr)
 # variables #
 ##########################
 
-input_folder <- 'F:/avans/stage MM/xcms_pipeline/_XCMS_default/batch_correction/Noice_reducted/'
-Corrected_data_matrix <- "XCMS_default_batchcorrected_noice_reduced_matrix.tsv"
-sample_meta_data <- "XCMS_default_batchcorrected_noice_reduced_sample_metadata.tsv"
-variable_meta_data <- "XCMS_default_batchcorrected_noice_reduced_variable_metadata.tsv"
+input_folder <- 'F:/avans/stage MM/Sherloktest_data_2/_XCMS_Default/Batch_correction/pre_univriate_filterd/'
+Corrected_data_matrix <- "XCMS_default_batchcorrected_pre_univriate_filterd_matrix.tsv"
+sample_meta_data <- "XCMS_default_batchcorrected_pre_univriate_filterd_sample_metadata.tsv"
+variable_meta_data <- "XCMS_default_batchcorrected_pre_univriate_filterd_variable_metadata.tsv"
 
 
 test <- c("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman","limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter")[1]
@@ -34,9 +34,9 @@ factor_of_interest <- 'gender'
 second_factor_of_interest <- 'age'
 
 P_value_treshhold <- 0.05
-max_features_output <- "NA"
-graph_title <- ''
-pre_fix_of_report <- ""
+max_features_output <- "NULL"
+graph_title <- 'univariate testing is super cool'
+pre_fix_of_report <- "this makes sure that it will not overwrite other reports"
 
 
 
@@ -47,13 +47,13 @@ pixelsize2 <- 12
 ######### filtering data ##########
 # keeps data who is bigger then these numbers#
 cutoff_hotelPval <-  0.001
-cutoff_missPval <-  0.001 
+cutoff_missPval <-  0.001
 cutoffDecipval <- 0.001
 
 
 ######## heatmap ###########
-cluster_groups_of_samples<- 6
-cluster_groups_of_features<- 6
+cluster_groups_of_samples<- 5
+cluster_groups_of_features<- 5
 
 heat_map_statistics <- c("pearson", "kendall", "spearman")[1]
 heat_map_algorithm <- c("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski",
@@ -76,7 +76,7 @@ if (max_features_output == "NA"){
 }
 
 
-try(variables_of_interest <- strsplit(variables_of_interest,",")[[1]])
+try(variables_of_interest <- strsplit(variables_of_interest,","))
 
 items_to_filter <- c('blank', 'QC')
 
@@ -296,7 +296,7 @@ sacPca <- ropls::opls(univariate_set, info.txt = 'interactive',
 dev.off()
 
 #update variables_of_interest
-
+variables_of_interest <- unlist(variables_of_interest)
 variables_of_interest <- variables_of_interest[variables_of_interest != factor_of_interest]
 
 
