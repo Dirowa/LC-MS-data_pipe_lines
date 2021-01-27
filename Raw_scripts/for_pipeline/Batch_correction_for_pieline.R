@@ -475,7 +475,6 @@ mSet <- Normalization(mSet, "NULL", "NULL", "NULL", ratio=FALSE, ratioNum=20) # 
 mSet <- PCA.Anal(mSet)
 mSet <- PlotPCAPairSummary(mSet, "pca_Best_corrected_pair_0_", "png", 72, width=NA, 5)
 mSet <- PlotPCAScree(mSet, "pca__Best_corrected_scree_0_", "png", 72, width=NA, 5)
-mSet <- PlotPCA2DScore(mSet, "pca_score2d_best_corrected_", "png", 72, width=NA, 5,2,reg = 0.95, show=1, grey.scale = 0)
 
 
 
