@@ -327,7 +327,7 @@ detach_package <- function(pkg, character.only = FALSE)
   final_output_folder <- "batch_correction"
   # columns names in dataframe of metadata
   
-  Best_peakpicked_based_on <- c("mean_var_QC_log10","Ratio_VAR_QC_log")[2]
+  Best_peakpicked_based_on <- c("mean_var_QC_log10","Ratio_VAR_total_QC_log")[2]
   
   
   
@@ -680,7 +680,7 @@ detach_package <- function(pkg, character.only = FALSE)
   
   ## ordering output
   means <- do.call(rbind, Map(data.frame,mean_var_total_log10=means2, mean_var_QC_log10=means, file=items))
-  means <- transform(means, Ratio_VAR_QC_log =  mean_var_QC_log10 / mean_var_total_log10)
+  means <- transform(means, 'Ratio_VAR_total_QC_log' =  mean_var_QC_log10 / mean_var_total_log10)
   means <- means[order(means[Best_peakpicked_based_on]),]
   print(means)
   #write down output of benchmarking
@@ -1215,8 +1215,6 @@ pre_fix_of_report <- "this makes sure that it will not overwrite other reports"
 
 
 
-pixelsize1 <- 20
-pixelsize2 <- 12
 
 
 ######### filtering data ##########
