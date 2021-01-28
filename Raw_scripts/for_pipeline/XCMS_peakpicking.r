@@ -65,7 +65,7 @@ cwp <- CentWaveParam(
   peakwidth = c(20, 50),
   snthresh = 10,
   prefilter = c(3, 100),
-  mzCenterFun = "wMean",
+  mzCenterFun = c("wMean","mean","apex","wMeanApex3")[1],
   integrate = 1L,
   mzdiff = -0.001,
   fitgauss = FALSE,
