@@ -128,4 +128,4 @@ launch the wrapper.py and edit the Major settings
 The following items are not yet supported in
 * Internal standards in batch correction
 * MS2 analyse with a spectrum database
-* 
+* XCMS peakpicking file who will help with setting variables
