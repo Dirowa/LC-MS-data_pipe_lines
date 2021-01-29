@@ -55,4 +55,14 @@ All found peaks will be corrected for their retention time based on well behavin
 The dataframes names and values will be edited so other scripts will accepts them and not fall into an error. This reduces the amount of unnesacary filling variables.
 
 #### Batch Correction
+The generated Variable metadata, Datamatrix and sample metadata is imported from XCMS into the batch correction script.
+It checks the data wether it insane or not. and produce some PCA plots before and after batch correction. All data will be Log10 transformed and missing datasets will have their NA transformed in 1/5 of the lowest found intensity across a feature. this produces a file called the new_normalised_set.csv. With that file multiple batch correction will be tested against each other. that includes : (Loess, Combat, WaveICA, EigenMS, QC_RLSC and Ancova). Based on the amount of QC samples, blanks samples, found features, injection orders and Batches an algorithm will succeed. Internal standards can also be incorperated into the script but is still on the TO DO list also becouse there isnt any good training data set available who contains internal standards. For each dataset an different batch correction is the best. To decide which one is the best, from all algorithms will the QC variance and total variance calculated and devided to each other. the user can select between lowest QC variante or lowest total/QC variance as parameter to decide which algorithm corrected the dataset the best. The best selected data matrix will be used to generate some additional plots and will be worked further in the data-pipeline. the best dataset can be recognised as data_matrix, variable_metadata, sample_metadata file with an addition of batchcorrected.tsv
+
+
+#### Pre univariate filtering
+Finding huge amount of features is wonderfull to have but not neccasery good. To prevent having a biased univariate testing the datasets will be filterd accordingly.
+As first all isotopes will be filterd out thus that only monoisotopic mass will reside in the dataset. this is also in corrospondes with the database where the mass is calculated for the monoisotopic mass. all found features will be filterd on the Relative Standard Deviation to prevent outliers. Thereby all background noise will be filterd. For each feature in the blank sample will 2 times the intensity (normalised back to normal numbers and not Log10) used as cutoff for the features in other samples and be transformed to NA. when all intensities in a features has been reduced to NA, the feature will be deleted. if the feature isnt deleted the NA will be transformed to 1/5 of the lowest found intensity in the feature group.
+
+#### Univariate testing
+
 
