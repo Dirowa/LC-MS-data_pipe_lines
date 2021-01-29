@@ -20,7 +20,7 @@
   * venn diagram maker
   * MS2 annotation
  * installation
- 
+ * net yet supported
 ## the wrapper
 The LC-MS2 wrapper is not an ordinary data-pipeline.
 Due the the huge amounts of variables and options is an dynamic pipeline created with an shell based interface
@@ -123,3 +123,9 @@ Download the Wrapper.rar and unzip in your favourite folder
 Check the dependencies and install them in R
 Check the tips for installing metaboshiny
 launch the wrapper.py and edit the Major settings
+
+## not yet supported
+The following items are not yet supported in
+* Internal standards in batch correction
+* MS2 analyse with a spectrum database
+* 
