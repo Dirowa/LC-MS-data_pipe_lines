@@ -10,7 +10,17 @@
 * databases
 * part run scripts
   * XCMS peakpicking
-  
+  * batch correction
+  * pre univariate filtering
+  * univariate filtering
+  * multivariate filtering
+  * post univariate filtering
+  * database annotation
+  * annotation comparison
+  * venn diagram maker
+  * MS2 annotation
+ * installation
+ 
 ## the wrapper
 The LC-MS2 wrapper is not an ordinary data-pipeline.
 Due the the huge amounts of variables and options is an dynamic pipeline created with an shell based interface
