@@ -18,6 +18,17 @@ These files can also be used as import as settings to the data_pipeline when run
 
 A batch run can be used. the files required for that can be found in the Batch folder with example setting file. This can be adjusted to server your needs. 
 
+To Analyse the data a few options are made available
+##### full run
+
+with the full run the imported datasets will go through almost all available scripts.
+It runs from XCMS peakpicking > batch Correction > pre univariate filtering > univariate testing > post univariate filtering > database annotation
+
+##### batch run
+The batch run does the same as the full run for exception on that you will get a choice meneu to enter variables. for this the example files in the Batch folders has to be edited and possible duplicated for more runs. it is advised to test the used variables first with part run
+
+##### part run 
+in the part run all scripts can be manualy enterd. 
 ## datasets
 with the datasets is it important to have the following items in the Sample Meta data
 It requires The sample names, Batch number, injection orders and sampletypes.
@@ -33,3 +44,5 @@ Later in the datapipeline compounds will be filterd for the monoisotopic mass
 It is also possible to parse pubchem into metadobo Shiny. For this are 2 Python scripts created
 1-  PubChem_parser_to import_to_extended.py can be run and the produces files have to be manually enterd in the extended.db from metaboshiny with SQLite3 commands.
 2-  pubchem_parser_slow_window&linux.py does the same as PubChem_parser_to import_to_extended.py but the output files can be imported into Metaboshiny where it calculates the monoisotopic mass from the SMILES structure
+
+
