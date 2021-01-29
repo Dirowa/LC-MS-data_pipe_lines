@@ -1,6 +1,6 @@
 # LC-MS2 data dynamic pipeline for metabolomic biomarker discovery
 
-## Table of contents
+### Table of contents
 * Wrapper introduction
 * Wrapper function
 * Full run
