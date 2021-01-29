@@ -90,6 +90,10 @@ As first all isotopes will be filterd out thus that only monoisotopic mass will 
 #### Univariate testing
 in the univariate testing the user can select a variable to test against with multiple statistical tests available. As fist the data will be inspected and filterd on only Sample intensities but also on Hotelings Pvalue, Decimal P-value and Missing P-value to get a more uniform dataset to test against. with each filtering a summary plot will be produced. The univariate testing can be done on : ("ttest", "limma", "wilcoxon", "anova", "kruskal", "pearson", "spearman","limma2ways", "limma2waysInter", "anova2ways", "anova2waysInter") and a siginificance P-value must be selected. Thereby can the user also set up multiple variables of intereset to generate more statistical plots. In this PCA and OPLS-DA modeling is implemented
 
+#### Multivariate testing
+the multivariate tool tests the dataset in multiple ways. It generates PCA plots and OPLS_DA plots.
+It is also possible to predict a model with overfitting
+
 #### Post univariate testing
 in this script the user can filter the features weither it was significant.
 what the QC/sample ratio is and what the Blank/sample ratio is.
