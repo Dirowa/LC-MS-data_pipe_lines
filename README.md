@@ -6,11 +6,17 @@ Due the the huge amounts of variables and options is an dynamic pipeline created
 With the Shell based interface is it possible to analyse datasets by remote computing
 The wrapper can be initialised by python and supports the Windows and Linux OS. 
 
-### wrapper functions
+#### wrapper functions
 
 inside the wrapper are serveral inbuild functions to improve functionality
 When the wrapper is excecuted for the first time it will generate a few importand setting files which worked when testing the data pipeline
+These settings can be adjusted inside the Shell system also by just using copy and paste. paths will be directly put in the right format.
+The settings can also be adjusted by opening the txt file and adjust the items "note keep the same layout or the wrapper will not know anymore what to do"
+When running an script from the wrapper a choise menu will be opend. users can fill in their adjustments to the Default settings or press ENTER for the default setting.
+After choosing the variables it will produce a txt file in the script_settings folder with the used settings to keep a track on which settings used.
+These files can also be used as import as settings to the data_pipeline when running a script.
 
+A batch run can be used. the files required for that can be found in the Batch folder with example setting file. This can be adjusted to server your needs. 
 
 ## datasets
 with the datasets is it important to have the following items in the Sample Meta data
