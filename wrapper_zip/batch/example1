@@ -1,0 +1,105 @@
+######## Data information #########
+path to folder containing data =  F:/avans/stage MM/Sherloktest_data_2/
+output location =   F:/avans/stage MM/Wrapper_test_run/
+unique name =  default
+######## Variable metadata information #########
+sample name header =  sample_name
+sample type header =  sampleType
+QC in sampletype =  pool
+blank in sampletype =  blank
+sample in sampletype =  sample
+injection order column =  injectionOrder
+batch number column =  batch
+sample metadata file name =  sample_metadata.tsv
+data file extenction =  mzXML
+Polarity 1-negative 2-positive =  2
+######## PEAK PICKING PARAMS #########
+ppm =  25
+peakwidth =  20,50
+snthresh =  10
+mzCenterFun choise [1-4]. 1-wmean, 2-mean, 3-apex, 4-wmeanApex3 =  1
+integrate =  1L
+mzdiff =  -0.001
+fitgauss =  FALSE
+noise =  0
+verboseColumns =  FALSE
+firstBaselineCheck =  TRUE
+extendLengthMSW =  FALSE
+######## Refine found Peaks #########
+expandRt =  2
+expandMz =  0
+ppm =  10
+minProp =  0.75
+######## Peak grouping #########
+bw =  30
+minFraction =  0.5
+minSamples =  1
+binSize =  0.25
+maxFeatures =  1000
+######## Retention_time_correction #########
+binSize =  1
+centerSample =  3
+response =  1L
+distFun choose [1-5] 1-cor 2-cor_opt 3-cov 4-prd 5-euc =  2
+gapInit =  0.5
+gapExtend =  2.5
+factorDiag =  2
+factorGap =  1
+localAlignment =  FALSE
+initPenalty =  0
+######## Retention_time_correction #########
+expandMz =  0
+expandRt =  0
+ppm =  0
+fixedMz =  0
+fixedRt =  0
+######## pixelsize for graphs #########
+pixelsize1 =  20
+pixelsize2 =  12
+######## batch correction #########
+select best batch correction on 1-mean variation on QC 2-Ratio var total_QC =  1
+######## Filters #########
+Filter on isotopes (TRUE or FALSE) =   TRUE
+Filter on Relative Standard Deviation (TRUE or FALSE) =   TRUE
+Filter Noise (TRUE or FALSE) =   TRUE
+######## Isotope filtering #########
+Deviation in isotope mass search =   0.003
+Deviation in isotope Retention time search =   0.003
+######## RSD filtering #########
+Relative standard deviation Treshold =   25
+######## Noise filtering #########
+minimal amout of hits found in samples =   1
+######## Univariate testing #########
+######## Statistical test to perform #########
+Statistical test are 1-ttest 2-limma 3-wilcoxon 4-anova 5-kruskal 6-pearson 7-spearman 8-limma2ways 9-limma2waysInter 10-anova2ways 11-anova2waysInter =   1
+Variable(s) of interest ( comma delimited) =  gender,age,bmi
+Correct dataset according variable (NULL results in skipping) =  NULL
+Main factor of interest =  gender
+secondary factor of interest =  age
+P-value Tresh_hold =  0.05
+max features as output? (NULL results in skipping) =  NULL
+######## Graphical #########
+graph title =  univariate testing is super cool
+prefix of reports =  this makes sure that it will not overwrite other reports
+######## Filtering data #########
+Cutoff Hotellings P-value (lower will sample be deleted) =  0.001
+Cutoff miss P-value (lower will sample be deleted) =  0.001
+Cutoff deci P-value (lower will sample be deleted) =  0.001
+######## Heathmap #########
+amount of clusters for samples =  5
+amount of clusters for features =  5
+heathmap statistics (1-pearson, 2-kendall, 3-spearman) choose[1:3] =  1
+heathmap Algorithm (1-euclidean 2-maximum 3-manhattan 4-canberra 5-binary 6-minkowski 7-(1-cor) 8-(1-abs(cor)) choose[1:8] =  7
+######## Select Filter Methods #########
+Filter on significant hits (TRUE or FALSE) =   TRUE
+Filter on QC/Sample ratio features found (TRUE or FALSE) =   TRUE
+Filter on blank/Sample ratio features found (TRUE or FALSE) =   TRUE
+######## Filtering Details #########
+min qc/sample ratio =   0.1
+max qc/sample ratio =   2.0
+max blank/sample ratio =   0.0
+max blank/sample ratio =   1.0
+######## Global_settings #########
+output location =   F:/avans/stage MM/Sherloktest_data_2/wrapper_annotated/
+Search range =   0.003
+Limit output from same mass =   2
