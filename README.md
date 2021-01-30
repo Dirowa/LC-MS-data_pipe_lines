@@ -1,4 +1,4 @@
-# LC-MS2 data dynamic pipeline for metabolomic biomarker discovery
+# LC-MS2 data dynamic pipeline for untargeted metabolomic biomarker discovery
 
 ### Table of contents
 * Wrapper introduction
