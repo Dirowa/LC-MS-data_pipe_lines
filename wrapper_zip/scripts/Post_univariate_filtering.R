@@ -95,7 +95,8 @@ dev.off()
    variable_metadata <- variable_metadata[variable_metadata[,signif_column_nr] == 1, ] 
     
    filter_rowname <- rownames(variable_metadata)
-   data_matrix <- data_matrix %>% filter(row.names(data_matrix) %in% filter_rowname)
+   data_matrix <- data_matrix[row.names(data_matrix)%in%filter_rowname,]
+
 }
 
 
