@@ -129,3 +129,4 @@ The following items are not yet supported in
 * Internal standards in batch correction
 * MS2 analyse with a spectrum database
 * XCMS peakpicking file who will help with setting variables
+* make autotuner or MetaboAnalysR peakpick setting finder available in the wrapper
