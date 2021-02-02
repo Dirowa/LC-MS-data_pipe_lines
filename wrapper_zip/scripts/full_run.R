@@ -252,8 +252,8 @@ scripts_locaion <- '####scripts_location####'
 ######################
 
 
-  rm(an, anF, cwp, d, data_frame, data_matrix, feature_list, fill, mpp, obi, pdp, peaklist, raw_data
-     ,res, sample_metadata1, xdata, xs, xsaC, xsaFA, xsaFI, line, data_file_extention)
+  try(rm(an, anF, cwp, d, data_frame, data_matrix, feature_list, fill, mpp, obi, pdp, peaklist, raw_data
+     ,res, sample_metadata1, xdata, xs, xsaC, xsaFA, xsaFI, line, data_file_extention))
   
 #############################
 ###### Batch_correction #####
@@ -580,8 +580,8 @@ scripts_locaion <- '####scripts_location####'
       #variance_dataframe[is.na(variance_dataframe)] <- 0
       print(mean(sapply(variance_dataframe,  var)))
       means[[i]] <- mean(sapply(variance_dataframe,  var))
-      rm(variance_dataframe)
-      rm(variance_dataframe1)
+      try(rm(variance_dataframe))
+      try(rm(variance_dataframe1))
     }
     
     
@@ -625,10 +625,10 @@ scripts_locaion <- '####scripts_location####'
       
       
       
-      rm(variance_dataframe)
-      rm(variance_dataframe1)
-      rm(var)
-      rm(vars)
+      try(rm(variance_dataframe))
+      try(rm(variance_dataframe1))
+      try(rm(var))
+      try(rm(vars))
       
     } 
     else {
@@ -647,7 +647,7 @@ scripts_locaion <- '####scripts_location####'
       var <- sapply(variance_dataframe,  var)
       print(mean(var))
       means[[i]] <- mean(var)
-      rm(variance_dataframe)
+      try(rm(variance_dataframe))
     }
   }
   
@@ -691,7 +691,7 @@ scripts_locaion <- '####scripts_location####'
   # perform updated PCA with best batch corrections#
   ##################################################
   
-  rm(mSet)
+  try(rm(mSet))
   mSet <- InitDataObjects("pktable", "stat", FALSE)
   mSet <- Read.TextData(mSet, "Best_batchcorrected.tsv", "row", "disc")
   mSet <- SanityCheckData(mSet)
@@ -982,9 +982,9 @@ scripts_locaion <- '####scripts_location####'
     
     
     
-    rm(data_orginal)
-    rm(isotope_table)
-    rm(possible_isotopes)
+    try(rm(data_orginal))
+    try(rm(isotope_table))
+    try(rm(possible_isotopes))
   }
   if (isTRUE(Filter_on_RSD)){
     
@@ -1045,7 +1045,7 @@ scripts_locaion <- '####scripts_location####'
     }
     
     #### Return the values to Original ###
-    rm(data)
+    try(rm(data))
     
     
     # editing the variable metadata
@@ -1121,10 +1121,10 @@ scripts_locaion <- '####scripts_location####'
 
 
 
-rm(combined, mSet, normalized_set, data_matrix, original_feat, possible_istopes1,
+try(rm(combined, mSet, normalized_set, data_matrix, original_feat, possible_istopes1,
    tmp_features_to_assign, feature_list, features_to_keep, features_to_delete, features_in_sample,
    intensities, metadata1, variable_metadata, line, blanks, sample_types, data1, sample_metadata1
-   , sample_metadata, unique_groups, means2, means)
+   , sample_metadata, unique_groups, means2, means))
 
 ##############
 # univariate #
@@ -1572,8 +1572,8 @@ file.remove(sample_metadata_path)
 #################
 
 
-rm(sacPca, sacPlsda, sacurine.eset, univariate_set, set, metadata2, line
-   , sample_metadata1, metadata, metadata1, data1, eset_names, sample_metadata1, sample_names, totest)
+try(rm(sacPca, sacPlsda, sacurine.eset, univariate_set, set, metadata2, line
+   , sample_metadata1, metadata, metadata1, data1, eset_names, sample_metadata1, sample_names, totest))
 ############################
 # post univariate filtering#
 ############################
@@ -1676,6 +1676,7 @@ if (isTRUE(filter_significant_hits)){
   
   filter_rowname <- rownames(variable_metadata)
   data_matrix <- data_matrix[row.names(data_matrix)%in%filter_rowname,]
+
 }
 
 
@@ -1750,7 +1751,7 @@ tmp <- tmp[(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='')
 tmp <- as.list(strsplit(tmp,"_")[[1]])
 
-tmp<- tmp[4:(length(tmp))]
+tmp<- tmp[2:(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='_')
 
 path <- paste0(outputfolder,tmp,'_filterd_data_matrix.tsv')
@@ -1764,7 +1765,7 @@ tmp <- tmp[(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='')
 tmp <- as.list(strsplit(tmp,"_")[[1]])
 
-tmp<- tmp[4:(length(tmp))]
+tmp<- tmp[2:(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='_')
 path <- paste0(outputfolder,tmp,'_filterd_sample_metadata.tsv')
 write.table(sample_metadata, path, sep ='\t')
@@ -1778,7 +1779,7 @@ tmp <- tmp[(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='')
 tmp <- as.list(strsplit(tmp,"_")[[1]])
 
-tmp<- tmp[4:(length(tmp))]
+tmp<- tmp[2:(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='_')
 
 path <- paste0(outputfolder,tmp,'_filterd_variable_metadata.tsv')
