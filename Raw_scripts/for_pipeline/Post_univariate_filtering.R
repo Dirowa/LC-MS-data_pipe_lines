@@ -173,7 +173,7 @@ tmp <- tmp[(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='')
 tmp <- as.list(strsplit(tmp,"_")[[1]])
 
-tmp<- tmp[4:(length(tmp))]
+tmp<- tmp[2:(length(tmp))]
 tmp <- paste( unlist(tmp), collapse='_')
 
 path <- paste0(outputfolder,tmp,'_filterd_data_matrix.tsv')
